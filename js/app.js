@@ -1,21 +1,21 @@
 // SAVI Single-Map Interface — app entry point.
 // Initializes MapLibre, loads the layer catalog, and wires up UI.
 
-import { addLayer, updateLayerVisibility, updateLayerOpacity, bindPopups, reAddAllLayers, applyLayerOrder, setLayerColor, setLayerPattern, setLayerPatternOpacity, setLayerRamp, reclassify, removeLayer, applyIndicatorSelection, RAMPS } from './layers.js?v=70';
-import { buildLayerPanel, buildLegend, buildBasemapSwitcher, openCatalogModal } from './ui.js?v=70';
-import { makeDraggable, makeCollapsible, makeResizable, resetPanelLayout } from './panels.js?v=70';
+import { addLayer, updateLayerVisibility, updateLayerOpacity, bindPopups, reAddAllLayers, applyLayerOrder, setLayerColor, setLayerPattern, setLayerPatternOpacity, setLayerRamp, reclassify, removeLayer, applyIndicatorSelection, RAMPS } from './layers.js?v=71';
+import { buildLayerPanel, buildLegend, buildBasemapSwitcher, openCatalogModal } from './ui.js?v=71';
+import { makeDraggable, makeCollapsible, makeResizable, resetPanelLayout } from './panels.js?v=71';
 import { buildToolbar, showToast, exportImage, exportPdf, exportData, exportLayer, setSaveDirty,
   listSavedMaps, getSavedMap, saveNamedMap, deleteSavedMap,
   getActiveMapId, setActiveMapId, clearActiveMapId, withLoading,
-  openSaveMapDialog, openSavedMapsDialog, downloadBlob, stamp } from './toolbar.js?v=70';
-import { ANY, loadDataset, getCategories, getIndicator, getLevels, availableYears, resolveSelection, getValueMap, geometryFor } from './dataset.js?v=70';
-import { openTableModal } from './table.js?v=70';
-import { openProfileModal } from './profile.js?v=70';
-import { openSwipe, closeSwipe, isSwipeOpen } from './swipe.js?v=70';
-import { openMetadataModal } from './metadata.js?v=70';
-import { openWelcomeCard } from './welcome.js?v=70';
-import { openFeaturedGallery } from './featured.js?v=70';
-import { openImportPlaces } from './import_places.js?v=70';
+  openSaveMapDialog, openSavedMapsDialog, downloadBlob, stamp } from './toolbar.js?v=71';
+import { ANY, loadDataset, getCategories, getIndicator, getLevels, availableYears, resolveSelection, getValueMap, geometryFor } from './dataset.js?v=71';
+import { openTableModal } from './table.js?v=71';
+import { openProfileModal } from './profile.js?v=71';
+import { openSwipe, closeSwipe, isSwipeOpen } from './swipe.js?v=71';
+import { openMetadataModal } from './metadata.js?v=71';
+import { openWelcomeCard } from './welcome.js?v=71';
+import { openFeaturedGallery } from './featured.js?v=71';
+import { openImportPlaces } from './import_places.js?v=71';
 
 // ---- Basemap definitions (all key-free) ----
 export const BASEMAPS = {
@@ -71,7 +71,7 @@ const state = {
   dynSeq: 0,        // counter for unique dynamic layer ids
   placesSeq: 0,     // counter for unique Places (pin) layer ids
   activeMapId: null, // id of the currently-loaded saved map (from the saved-maps list)
-  autosave: false,  // auto-save the active map on changes (off by default)
+  autosave: true,  // auto-save the active map on changes (on by default; init reads the pref)
   autosaveTimer: null, // debounce handle for autosave
   geolocate: null,  // MapLibre GeolocateControl (live "my location" dot)
   navCtrl: null,    // MapLibre NavigationControl (zoom + compass)
@@ -219,8 +219,9 @@ window.__saviSparkHover = function (el, text) {
 };
 
 async function init() {
-  // Restore the autosave preference (off by default).
-  try { state.autosave = localStorage.getItem('savi.autosave') === '1'; } catch { /* ignore */ }
+  // Restore the autosave preference (ON by default). Only an explicit '0' (user turned
+  // it off) disables it; a missing key — i.e. a first-time visitor — defaults to on.
+  try { state.autosave = localStorage.getItem('savi.autosave') !== '0'; } catch { /* ignore */ }
 
   // Load layer catalog + the harvested indicator dataset (drives the selectors).
   const [catalog] = await Promise.all([
