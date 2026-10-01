@@ -1,21 +1,21 @@
 // SAVI Single-Map Interface — app entry point.
 // Initializes MapLibre, loads the layer catalog, and wires up UI.
 
-import { addLayer, updateLayerVisibility, updateLayerOpacity, bindPopups, reAddAllLayers, applyLayerOrder, setLayerColor, setLayerPattern, setLayerPatternOpacity, setLayerRamp, reclassify, removeLayer, applyIndicatorSelection, RAMPS } from './layers.js?v=69';
-import { buildLayerPanel, buildLegend, buildBasemapSwitcher, openCatalogModal } from './ui.js?v=69';
-import { makeDraggable, makeCollapsible, makeResizable, resetPanelLayout } from './panels.js?v=69';
+import { addLayer, updateLayerVisibility, updateLayerOpacity, bindPopups, reAddAllLayers, applyLayerOrder, setLayerColor, setLayerPattern, setLayerPatternOpacity, setLayerRamp, reclassify, removeLayer, applyIndicatorSelection, RAMPS } from './layers.js?v=70';
+import { buildLayerPanel, buildLegend, buildBasemapSwitcher, openCatalogModal } from './ui.js?v=70';
+import { makeDraggable, makeCollapsible, makeResizable, resetPanelLayout } from './panels.js?v=70';
 import { buildToolbar, showToast, exportImage, exportPdf, exportData, exportLayer, setSaveDirty,
   listSavedMaps, getSavedMap, saveNamedMap, deleteSavedMap,
   getActiveMapId, setActiveMapId, clearActiveMapId, withLoading,
-  openSaveMapDialog, openSavedMapsDialog, downloadBlob, stamp } from './toolbar.js?v=69';
-import { ANY, loadDataset, getCategories, getIndicator, getLevels, availableYears, resolveSelection, getValueMap, geometryFor } from './dataset.js?v=69';
-import { openTableModal } from './table.js?v=69';
-import { openProfileModal } from './profile.js?v=69';
-import { openSwipe, closeSwipe, isSwipeOpen } from './swipe.js?v=69';
-import { openMetadataModal } from './metadata.js?v=69';
-import { openWelcomeCard } from './welcome.js?v=69';
-import { openFeaturedGallery } from './featured.js?v=69';
-import { openImportPlaces } from './import_places.js?v=69';
+  openSaveMapDialog, openSavedMapsDialog, downloadBlob, stamp } from './toolbar.js?v=70';
+import { ANY, loadDataset, getCategories, getIndicator, getLevels, availableYears, resolveSelection, getValueMap, geometryFor } from './dataset.js?v=70';
+import { openTableModal } from './table.js?v=70';
+import { openProfileModal } from './profile.js?v=70';
+import { openSwipe, closeSwipe, isSwipeOpen } from './swipe.js?v=70';
+import { openMetadataModal } from './metadata.js?v=70';
+import { openWelcomeCard } from './welcome.js?v=70';
+import { openFeaturedGallery } from './featured.js?v=70';
+import { openImportPlaces } from './import_places.js?v=70';
 
 // ---- Basemap definitions (all key-free) ----
 export const BASEMAPS = {
@@ -400,11 +400,11 @@ async function init() {
     panels: [
       // group: 'panel' = floating panels, 'tool' = compare modes, 'control' = map controls.
       { key: 'basemap', label: 'Basemap', group: 'panel', el: document.getElementById('panel-basemap'),
-        onToggle: () => { document.getElementById('panel-basemap').classList.toggle('hidden'); markDirty(); } },
+        onToggle: () => { document.getElementById('panel-basemap').classList.toggle('hidden'); markDirtyNow(); } },
       { key: 'layers', label: 'Layers', group: 'panel', el: document.getElementById('panel-layers'),
-        onToggle: () => { document.getElementById('panel-layers').classList.toggle('hidden'); markDirty(); } },
+        onToggle: () => { document.getElementById('panel-layers').classList.toggle('hidden'); markDirtyNow(); } },
       { key: 'legend', label: 'Legend', group: 'panel', el: document.getElementById('panel-legend'),
-        onToggle: () => { document.getElementById('panel-legend').classList.toggle('hidden'); markDirty(); } },
+        onToggle: () => { document.getElementById('panel-legend').classList.toggle('hidden'); markDirtyNow(); } },
       { key: 'timeline', label: 'Timeline', group: 'panel', el: document.getElementById('panel-timeline'),
         onToggle: () => {
           const tl = document.getElementById('panel-timeline');
@@ -412,7 +412,7 @@ async function init() {
           tl.classList.toggle('hidden');
           if (willHide) stopPlay();   // closing the timeline stops any running animation
           state.timelineTouched = true;
-          markDirty();
+          markDirtyNow();
         } },
       { key: 'swipe', label: 'Swipe compare', group: 'tool',
         isOn: () => isSwipeOpen(),
@@ -621,7 +621,7 @@ async function init() {
       close.addEventListener('click', () => {
         panel.classList.add('hidden');
         if (panel.id === 'panel-timeline') { state.timelineTouched = true; stopPlay(); }
-        markDirty();
+        markDirtyNow();
       });
       handle.appendChild(close);
     }
@@ -2153,6 +2153,15 @@ function clearLegendHighlight() {
 function markDirty() {
   setSaveDirty(true);
   scheduleAutosave();
+}
+
+// Like markDirty but persists NOW (no debounce). Use for discrete, important state
+// changes — e.g. showing/hiding a panel — so a quick refresh can't drop them even on
+// browsers where the pagehide/visibilitychange flush is unreliable.
+function markDirtyNow() {
+  setSaveDirty(true);
+  if (state.autosaveTimer) { clearTimeout(state.autosaveTimer); state.autosaveTimer = null; }
+  doAutosave();
 }
 
 // Ensure there's a saved map to autosave into. If none is active (user never did a
