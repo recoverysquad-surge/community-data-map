@@ -382,7 +382,9 @@ const ICONS = {
   profile: '<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
   newmap: '<svg viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/><path d="M12 12v6M9 15h6"/></svg>',
   share: '<svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.5l6.8-4M8.6 13.5l6.8 4"/></svg>',
-  menu: '<svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>'
+  menu: '<svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>',
+  layers: '<svg viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 12 12 17 22 12"/><polyline points="2 17 12 22 22 17"/></svg>',
+  legend: '<svg viewBox="0 0 24 24"><rect x="3" y="4" width="6" height="6" rx="1"/><rect x="3" y="14" width="6" height="6" rx="1"/><path d="M12 7h9M12 17h9"/></svg>'
 };
 function icon(name) { return `<span class="tb-ico">${ICONS[name] || ''}</span>`; }
 
@@ -707,6 +709,38 @@ export function buildToolbar(handlers) {
   // Re-sync checkmarks each time the menu opens (panels can be closed elsewhere).
   view.menu._onOpen = () => viewToggles.forEach(t => t.render());
   bar.appendChild(view.wrap);
+
+  // Layers + Legend are vital, so promote them to obvious top-level toggle buttons
+  // (they're also in the View menu). The pressed state reflects the panel's current
+  // visibility and stays in sync if the panel is toggled elsewhere (View menu, the
+  // panel's own close X, or the hamburger). Kept visible on phones too (icon-only).
+  const panelToggleBtn = (key, iconName) => {
+    const p = handlers.panels.find(x => x.key === key);
+    if (!p || !p.el) return null;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'tb-btn tb-toggle';
+    btn.innerHTML = icon(iconName) + label(p.label);
+    const sync = () => {
+      const on = !p.el.classList.contains('hidden');
+      btn.classList.toggle('tb-toggle-on', on);
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      btn.title = (on ? 'Hide the ' : 'Show the ') + p.label + ' panel';
+    };
+    btn.addEventListener('click', () => {
+      (p.onToggle || (() => p.el.classList.toggle('hidden')))();
+      sync();
+    });
+    if (window.MutationObserver) {
+      new MutationObserver(sync).observe(p.el, { attributes: true, attributeFilter: ['class'] });
+    }
+    sync();
+    return btn;
+  };
+  const layersToggleBtn = panelToggleBtn('layers', 'layers');
+  const legendToggleBtn = panelToggleBtn('legend', 'legend');
+  if (layersToggleBtn) bar.appendChild(layersToggleBtn);
+  if (legendToggleBtn) bar.appendChild(legendToggleBtn);
 
   // Compare: open the tabular data view.
   const tableBtn = document.createElement('button');

@@ -5,9 +5,9 @@
 // Download the current table as CSV, Excel (.xlsx, lazy SheetJS) or GeoJSON.
 
 import { loadDataset, getCategories, getIndicators, searchIndicators, getIndicator,
-  getLevels, availableDisplays, availableYears, getValueMap } from './dataset.js?v=71';
-import { withLoading } from './toolbar.js?v=71';
-import { renderTrend, renderScatter, renderSlope, renderRadar, renderDistribution } from './charts.js?v=71';
+  getLevels, availableDisplays, availableYears, getValueMap } from './dataset.js?v=72';
+import { withLoading } from './toolbar.js?v=72';
+import { renderTrend, renderScatter, renderSlope, renderRadar, renderDistribution } from './charts.js?v=72';
 
 // ---- module state (one live table at a time) ----
 const M = {
