@@ -2330,7 +2330,10 @@ html, body {
     -webkit-overflow-scrolling: touch;
   }
   .tb-logo .tb-logo-sub { display: none; }
-  .tb-logo .tb-logo-mark { font-size: 15px; }
+  /* Shrink the brand on phones so brand + Add Data + Layers/Legend toggles + the
+     hamburger all fit on one row (otherwise the hamburger wraps to its own line). */
+  .tb-logo .tb-logo-mark { font-size: 13px; }
+  .tb-logo { min-width: 0; flex: 0 1 auto; }
   .tb-spacer { flex: 0 0 0; }                     /* don't force buttons to wrap early */
 
   /* Docks span the full width and stack; panels go full-bleed and shorter. The

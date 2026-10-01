@@ -679,11 +679,14 @@ export function buildToolbar(handlers) {
   bar.appendChild(brand);
   bar.appendChild(divider());
 
-  // Primary action: + Add Data (promoted from the Layers panel).
+  // Primary action: + Add Data (promoted from the Layers panel). Kept visible on
+  // phones too (icon-only, accent-colored) so the main action isn't buried in the
+  // hamburger — it sits by the brand on the left, with the toggles/hamburger right.
   const addBtn = document.createElement('button');
   addBtn.type = 'button';
-  addBtn.className = 'tb-btn tb-primary tb-mobile-hide';
+  addBtn.className = 'tb-btn tb-primary';
   addBtn.innerHTML = icon('add') + label('Data');
+  addBtn.setAttribute('aria-label', 'Add Data');   // label is icon-only on phones
   addBtn.title = 'Add a data indicator to the map';
   addBtn.addEventListener('click', () => handlers.onAddData && handlers.onAddData());
   bar.appendChild(addBtn);
