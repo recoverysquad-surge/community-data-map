@@ -119,6 +119,102 @@
         ],
         "zoom": 8.5
       }
+    },
+    {
+      "id": "total-population",
+      "label": "Total Population",
+      "description": "Total number of residents, by county.",
+      "category": "Demographics",
+      "dynamic": [
+        {
+          "indicatorId": "total_population",
+          "sel": {
+            "level": "Counties",
+            "display": "People",
+            "year": "2024"
+          },
+          "ramp": "blues"
+        }
+      ],
+      "view": {
+        "center": [
+          -86.21,
+          39.75
+        ],
+        "zoom": 8.5
+      }
+    },
+    {
+      "id": "labor-force",
+      "label": "Working-Age Labor Force",
+      "description": "Share of working-age residents (16–64) in the labor force, by county.",
+      "category": "Economy",
+      "dynamic": [
+        {
+          "indicatorId": "population_16_to_64_years_in_the_labor_force",
+          "sel": {
+            "level": "Counties",
+            "display": "as % of Pop 18-64",
+            "year": "2024"
+          },
+          "ramp": "teal"
+        }
+      ],
+      "view": {
+        "center": [
+          -86.21,
+          39.75
+        ],
+        "zoom": 8.5
+      }
+    },
+    {
+      "id": "bachelors-degree",
+      "label": "Bachelor's Degree or Higher",
+      "description": "Share of adults 18–64 with a bachelor’s degree or higher, by county.",
+      "category": "Education",
+      "dynamic": [
+        {
+          "indicatorId": "population_18_64_years_old_with_a_bachelor_s_degree_or_highe",
+          "sel": {
+            "level": "Counties",
+            "display": "as % of Adults 18 to 64",
+            "year": "2024"
+          },
+          "ramp": "purples"
+        }
+      ],
+      "view": {
+        "center": [
+          -86.21,
+          39.75
+        ],
+        "zoom": 8.5
+      }
+    },
+    {
+      "id": "park-acreage",
+      "label": "Total Park Acreage",
+      "description": "Total acres of parkland, by county.",
+      "category": "Arts, Culture and Recreation",
+      "dynamic": [
+        {
+          "indicatorId": "total_park_acreage",
+          "sel": {
+            "level": "Counties",
+            "display": "Acres",
+            "year": "2007"
+          },
+          "ramp": "greens"
+        }
+      ],
+      "view": {
+        "center": [
+          -86.21,
+          39.75
+        ],
+        "zoom": 8.5
+      }
     }
   ]
 }
