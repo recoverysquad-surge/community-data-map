@@ -150,6 +150,9 @@ html, body {
   color: var(--on-accent);
 }
 .tb-toggle.tb-toggle-on:hover { background: var(--accent-deep); border-color: var(--accent-text); }
+/* Layers/Legend are icon-only everywhere (the icon + title/aria-label carry the meaning),
+   keeping the bar compact. */
+.tb-toggle .tb-label { display: none; }
 
 /* Address / place search box in the toolbar. */
 .tb-search {
@@ -2309,7 +2312,11 @@ html, body {
   .tb-btn .tb-label { display: none; }          /* icon-only on phones */
   .tb-btn .tb-caret { margin-left: 2px; }
   .tb-mobile-hide { display: none !important; }  /* folded into the hamburger */
-  .tb-hamburger { display: inline-flex; margin-left: auto; }
+  /* The Layers/Legend toggles stay out of the hamburger; the first one floats the
+     toggle cluster to the right, and the hamburger (order:50) lands after it at the
+     far edge with a little padding between. */
+  .tb-right-start { margin-left: auto; }
+  .tb-hamburger { display: inline-flex; order: 50; margin-left: 12px; }
   .tb-hamburger .tb-caret { display: none; }
   /* The hamburger's menu can be tall once categories expand — cap it to the
      viewport and let it scroll instead of running off-screen. */

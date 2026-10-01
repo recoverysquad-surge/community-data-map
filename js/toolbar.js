@@ -721,6 +721,7 @@ export function buildToolbar(handlers) {
     btn.type = 'button';
     btn.className = 'tb-btn tb-toggle';
     btn.innerHTML = icon(iconName) + label(p.label);
+    btn.setAttribute('aria-label', p.label);   // label is icon-only (hidden), so name it
     const sync = () => {
       const on = !p.el.classList.contains('hidden');
       btn.classList.toggle('tb-toggle-on', on);
@@ -739,6 +740,10 @@ export function buildToolbar(handlers) {
   };
   const layersToggleBtn = panelToggleBtn('layers', 'layers');
   const legendToggleBtn = panelToggleBtn('legend', 'legend');
+  // On mobile the first toggle floats the toggle cluster to the right (margin-left:auto),
+  // so the hamburger (order:50) lands after them at the far edge.
+  const firstToggle = layersToggleBtn || legendToggleBtn;
+  if (firstToggle) firstToggle.classList.add('tb-right-start');
   if (layersToggleBtn) bar.appendChild(layersToggleBtn);
   if (legendToggleBtn) bar.appendChild(legendToggleBtn);
 
