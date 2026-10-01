@@ -1,22 +1,22 @@
 // SAVI Single-Map Interface — app entry point.
 // Initializes MapLibre, loads the layer catalog, and wires up UI.
 
-import { addLayer, updateLayerVisibility, updateLayerOpacity, bindPopups, reAddAllLayers, applyLayerOrder, setLayerColor, setLayerPattern, setLayerPatternOpacity, setLayerRamp, reclassify, removeLayer, applyIndicatorSelection, RAMPS } from './layers.js?v=75';
-import { buildLayerPanel, buildLegend, buildBasemapSwitcher, openCatalogModal } from './ui.js?v=75';
-import { makeDraggable, makeCollapsible, makeResizable, resetPanelLayout } from './panels.js?v=75';
+import { addLayer, updateLayerVisibility, updateLayerOpacity, bindPopups, reAddAllLayers, applyLayerOrder, setLayerColor, setLayerPattern, setLayerPatternOpacity, setLayerRamp, reclassify, removeLayer, applyIndicatorSelection, RAMPS } from './layers.js?v=76';
+import { buildLayerPanel, buildLegend, buildBasemapSwitcher, openCatalogModal } from './ui.js?v=76';
+import { makeDraggable, makeCollapsible, makeResizable, resetPanelLayout } from './panels.js?v=76';
 import { buildToolbar, showToast, exportImage, exportPdf, exportData, exportLayer, setSaveDirty,
   listSavedMaps, getSavedMap, saveNamedMap, deleteSavedMap,
   getActiveMapId, setActiveMapId, clearActiveMapId, withLoading,
-  openSaveMapDialog, openSavedMapsDialog, downloadBlob, stamp } from './toolbar.js?v=75';
-import { ANY, loadDataset, getCategories, getIndicator, getLevels, availableYears, resolveSelection, getValueMap, geometryFor } from './dataset.js?v=75';
-import { openTableModal } from './table.js?v=75';
-import { openProfileModal } from './profile.js?v=75';
-import { openSwipe, closeSwipe, isSwipeOpen } from './swipe.js?v=75';
-import { openMetadataModal } from './metadata.js?v=75';
-import { openWelcomeCard } from './welcome.js?v=75';
-import { openFeaturedGallery } from './featured.js?v=75';
-import { openImportPlaces } from './import_places.js?v=75';
-import { openImportGeojson } from './import_geojson.js?v=75';
+  openSaveMapDialog, openSavedMapsDialog, downloadBlob, stamp } from './toolbar.js?v=76';
+import { ANY, loadDataset, getCategories, getIndicator, getLevels, availableYears, resolveSelection, getValueMap, geometryFor } from './dataset.js?v=76';
+import { openTableModal } from './table.js?v=76';
+import { openProfileModal } from './profile.js?v=76';
+import { openSwipe, closeSwipe, isSwipeOpen } from './swipe.js?v=76';
+import { openMetadataModal } from './metadata.js?v=76';
+import { openWelcomeCard } from './welcome.js?v=76';
+import { openFeaturedGallery } from './featured.js?v=76';
+import { openImportPlaces } from './import_places.js?v=76';
+import { openImportGeojson } from './import_geojson.js?v=76';
 
 // ---- Basemap definitions (all key-free) ----
 export const BASEMAPS = {
@@ -2142,7 +2142,18 @@ function applySavedToCatalog(saved) {
     if (s.pattern) l.pattern = s.pattern;
     if (s.patternColor) l.patternColor = s.patternColor;
     if (s.patternOpacity != null) l.patternOpacity = s.patternOpacity;
-    if (s.paint) l.paint = { ...(l.paint || {}), ...s.paint };
+    if (s.paint) {
+      l.paint = { ...(l.paint || {}), ...s.paint };
+      // Keep the legend swatch in sync with a restyled primary color (choropleth
+      // stops are handled separately below). Without this, a recolored Places/point
+      // /line/area layer shows its restored map color but a stale legend swatch.
+      if (!l.choropleth && l.legend && l.legend[0]) {
+        const prim = l.geometry === 'point' ? l.paint['circle-color']
+          : l.geometry === 'line' ? l.paint['line-color']
+            : l.paint['fill-color'];
+        if (prim) l.legend[0].color = prim;
+      }
+    }
     if (s.choroplethColors && l.choropleth) {
       l.choropleth.stops.forEach((st, i) => { if (s.choroplethColors[i]) st.color = s.choroplethColors[i]; });
       if (l.legend) l.legend.forEach((e, i) => { if (l.choropleth.stops[i]) e.color = l.choropleth.stops[i].color; });

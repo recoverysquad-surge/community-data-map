@@ -1,9 +1,9 @@
 // SAVI — UI builders: flat draggable layer list, legend, basemap switcher.
 
-import { accentColor, RAMPS } from './layers.js?v=75';
+import { accentColor, RAMPS } from './layers.js?v=76';
 import { ANY, availableLevels, availableDisplays, availableYears,
-  searchIndicators } from './dataset.js?v=75';
-import { makeDraggable } from './panels.js?v=75';
+  searchIndicators } from './dataset.js?v=76';
+import { makeDraggable } from './panels.js?v=76';
 
 // Normalize any hex color to #rrggbb (input[type=color] requires the 6-digit form).
 function toHex(c) {
