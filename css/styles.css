@@ -2316,10 +2316,11 @@ html, body {
   .tb-btn .tb-label { display: none; }          /* icon-only on phones */
   .tb-btn .tb-caret { margin-left: 2px; }
   .tb-mobile-hide { display: none !important; }  /* folded into the hamburger */
-  /* The Layers/Legend toggles stay out of the hamburger; the first one floats the
-     toggle cluster to the right, and the hamburger (order:50) lands after it at the
-     far edge with a little padding between. */
-  .tb-right-start { margin-left: auto; }
+  /* The Add Data button starts the right-hand cluster (Add Data + Layers/Legend
+     toggles + hamburger at order:50). margin-left:auto floats the cluster right;
+     padding-left guarantees a visible gap from the brand even when the row is tight
+     (auto-margin alone can collapse to almost nothing). */
+  .tb-right-start { margin-left: auto; padding-left: 12px; }
   .tb-hamburger { display: inline-flex; order: 50; margin-left: 12px; }
   .tb-hamburger .tb-caret { display: none; }
   /* The hamburger's menu can be tall once categories expand — cap it to the
@@ -2331,8 +2332,9 @@ html, body {
   }
   .tb-logo .tb-logo-sub { display: none; }
   /* Shrink the brand on phones so brand + Add Data + Layers/Legend toggles + the
-     hamburger all fit on one row (otherwise the hamburger wraps to its own line). */
-  .tb-logo .tb-logo-mark { font-size: 13px; }
+     hamburger all fit on one row (otherwise the hamburger wraps to its own line),
+     leaving slack for the Add-Data cluster's gap from the brand. */
+  .tb-logo .tb-logo-mark { font-size: 12px; }
   .tb-logo { min-width: 0; flex: 0 1 auto; }
   .tb-spacer { flex: 0 0 0; }                     /* don't force buttons to wrap early */
 

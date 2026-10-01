@@ -373,6 +373,9 @@ export async function exportLayer(cfg, format) {
 // ---- Toolbar icons (inline SVG, themed via currentColor) ----
 const ICONS = {
   add: '<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
+  // Layers-stack-with-plus — the same "add a data layer" glyph as the Layers panel
+  // button (index.html #add-data-btn), so the two Add-Data entry points match.
+  adddata: '<svg viewBox="0 0 24 24"><path d="M8 6 2 9 8 12 14 9 8 6Z"/><path d="M2 15 8 18 14 15"/><path d="M18.5 7V13M15.5 10H21.5"/></svg>',
   view: '<svg viewBox="0 0 24 24"><path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>',
   map: '<svg viewBox="0 0 24 24"><path d="M9 3 3 5v16l6-2 6 2 6-2V3l-6 2-6-2z"/><path d="M9 3v16M15 5v16"/></svg>',
   table: '<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="1"/><path d="M3 9h18M3 14h18M9 4v16M15 4v16"/></svg>',
@@ -679,13 +682,13 @@ export function buildToolbar(handlers) {
   bar.appendChild(brand);
   bar.appendChild(divider());
 
-  // Primary action: + Add Data (promoted from the Layers panel). Kept visible on
+  // Primary action: Add Data (promoted from the Layers panel). Kept visible on
   // phones too (icon-only, accent-colored) so the main action isn't buried in the
-  // hamburger — it sits by the brand on the left, with the toggles/hamburger right.
+  // hamburger. Uses the same layers-with-plus glyph as the Layers panel's add button.
   const addBtn = document.createElement('button');
   addBtn.type = 'button';
   addBtn.className = 'tb-btn tb-primary';
-  addBtn.innerHTML = icon('add') + label('Data');
+  addBtn.innerHTML = icon('adddata') + label('Data');
   addBtn.setAttribute('aria-label', 'Add Data');   // label is icon-only on phones
   addBtn.title = 'Add a data indicator to the map';
   addBtn.addEventListener('click', () => handlers.onAddData && handlers.onAddData());
@@ -743,10 +746,11 @@ export function buildToolbar(handlers) {
   };
   const layersToggleBtn = panelToggleBtn('layers', 'layers');
   const legendToggleBtn = panelToggleBtn('legend', 'legend');
-  // On mobile the first toggle floats the toggle cluster to the right (margin-left:auto),
-  // so the hamburger (order:50) lands after them at the far edge.
-  const firstToggle = layersToggleBtn || legendToggleBtn;
-  if (firstToggle) firstToggle.classList.add('tb-right-start');
+  // On mobile the Add Data button starts the right-hand cluster (margin-left:auto),
+  // so Add Data + Layers + Legend sit together on the right (Add Data right next to
+  // the Layers toggle) with a gap from the brand, and the hamburger (order:50) lands
+  // after them at the far edge.
+  addBtn.classList.add('tb-right-start');
   if (layersToggleBtn) bar.appendChild(layersToggleBtn);
   if (legendToggleBtn) bar.appendChild(legendToggleBtn);
 
