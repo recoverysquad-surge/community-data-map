@@ -1,21 +1,21 @@
 // SAVI Single-Map Interface — app entry point.
 // Initializes MapLibre, loads the layer catalog, and wires up UI.
 
-import { addLayer, updateLayerVisibility, updateLayerOpacity, bindPopups, reAddAllLayers, applyLayerOrder, setLayerColor, setLayerPattern, setLayerPatternOpacity, setLayerRamp, reclassify, removeLayer, applyIndicatorSelection, RAMPS } from './layers.js?v=64';
-import { buildLayerPanel, buildLegend, buildBasemapSwitcher, openCatalogModal } from './ui.js?v=64';
-import { makeDraggable, makeCollapsible, makeResizable, resetPanelLayout } from './panels.js?v=64';
+import { addLayer, updateLayerVisibility, updateLayerOpacity, bindPopups, reAddAllLayers, applyLayerOrder, setLayerColor, setLayerPattern, setLayerPatternOpacity, setLayerRamp, reclassify, removeLayer, applyIndicatorSelection, RAMPS } from './layers.js?v=65';
+import { buildLayerPanel, buildLegend, buildBasemapSwitcher, openCatalogModal } from './ui.js?v=65';
+import { makeDraggable, makeCollapsible, makeResizable, resetPanelLayout } from './panels.js?v=65';
 import { buildToolbar, showToast, exportImage, exportPdf, exportData, exportLayer, setSaveDirty,
   listSavedMaps, getSavedMap, saveNamedMap, deleteSavedMap,
   getActiveMapId, setActiveMapId, clearActiveMapId, withLoading,
-  openSaveMapDialog, openSavedMapsDialog, downloadBlob, stamp } from './toolbar.js?v=64';
-import { ANY, loadDataset, getCategories, getIndicator, getLevels, availableYears, resolveSelection, getValueMap, geometryFor } from './dataset.js?v=64';
-import { openTableModal } from './table.js?v=64';
-import { openProfileModal } from './profile.js?v=64';
-import { openSwipe, closeSwipe, isSwipeOpen } from './swipe.js?v=64';
-import { openMetadataModal } from './metadata.js?v=64';
-import { openWelcomeCard } from './welcome.js?v=64';
-import { openFeaturedGallery } from './featured.js?v=64';
-import { openImportPlaces } from './import_places.js?v=64';
+  openSaveMapDialog, openSavedMapsDialog, downloadBlob, stamp } from './toolbar.js?v=65';
+import { ANY, loadDataset, getCategories, getIndicator, getLevels, availableYears, resolveSelection, getValueMap, geometryFor } from './dataset.js?v=65';
+import { openTableModal } from './table.js?v=65';
+import { openProfileModal } from './profile.js?v=65';
+import { openSwipe, closeSwipe, isSwipeOpen } from './swipe.js?v=65';
+import { openMetadataModal } from './metadata.js?v=65';
+import { openWelcomeCard } from './welcome.js?v=65';
+import { openFeaturedGallery } from './featured.js?v=65';
+import { openImportPlaces } from './import_places.js?v=65';
 
 // ---- Basemap definitions (all key-free) ----
 export const BASEMAPS = {
@@ -294,12 +294,20 @@ async function init() {
     applySavedToCatalog(saved);
   }
 
+  // Starting zoom for a fresh map (no saved view). On a phone the viewport is much
+  // narrower, so start zoomed out a bit more to fit the whole region; desktop keeps
+  // the catalog default. Used at map init and by "Reset View".
+  const narrowStart = window.matchMedia && window.matchMedia('(max-width: 720px)').matches;
+  const startZoom = narrowStart
+    ? Math.max(catalog.map.minZoom || 4, catalog.map.zoom - 1.5)
+    : catalog.map.zoom;
+
   // Init map (preserveDrawingBuffer lets us read the canvas for PNG/PDF export).
   const map = new maplibregl.Map({
     container: 'map',
     style: basemapStyle(state.currentBasemap),
     center: (saved && saved.view && saved.view.center) || catalog.map.center,
-    zoom: (saved && saved.view && saved.view.zoom != null) ? saved.view.zoom : catalog.map.zoom,
+    zoom: (saved && saved.view && saved.view.zoom != null) ? saved.view.zoom : startZoom,
     minZoom: catalog.map.minZoom || 4,
     maxZoom: catalog.map.maxZoom || 18,
     preserveDrawingBuffer: true,
@@ -328,6 +336,33 @@ async function init() {
   const scaleCtrl = new maplibregl.ScaleControl({ maxWidth: 120, unit: 'imperial' });
   map.addControl(scaleCtrl, 'bottom-right');
   state.scaleCtrl = scaleCtrl;
+
+  // Mobile-only: it's easy to accidentally zoom in on a phone and lose your place.
+  // Disable double-tap zoom (the usual culprit) and add a one-tap "Recenter" button
+  // that flies back to the regional starting view. Desktop is unaffected.
+  if (narrowStart) {
+    try { map.doubleClickZoom.disable(); } catch { /* ignore */ }
+    const recenter = {
+      onAdd(m) {
+        this._map = m;
+        const div = document.createElement('div');
+        div.className = 'maplibregl-ctrl maplibregl-ctrl-group';
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.title = 'Recenter the map';
+        btn.setAttribute('aria-label', 'Recenter the map');
+        btn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>';
+        btn.addEventListener('click', () => {
+          m.flyTo({ center: catalog.map.center, zoom: startZoom, bearing: 0, pitch: 0, duration: 700 });
+        });
+        div.appendChild(btn);
+        this._container = div;
+        return div;
+      },
+      onRemove() { if (this._container) this._container.remove(); this._map = undefined; }
+    };
+    map.addControl(recenter, 'bottom-right');
+  }
   // Apply saved show/hide prefs for the map controls (all default ON).
   applyControlVisibility();
   // Persistent data-source credit to SAVI (indicator values are harvested from SAVI).
@@ -435,6 +470,7 @@ async function init() {
       setTimeout(() => location.reload(), 500);
     },
     onCopyLink: () => copyPermalink(),
+    onShare: () => shareCurrentView(),
     onResetLayout: () => {
       resetPanelLayout();
       markDirty();
@@ -466,7 +502,7 @@ async function init() {
     onResetView: () => {
       if (!state.map) return;
       state.map.flyTo({
-        center: catalog.map.center, zoom: catalog.map.zoom,
+        center: catalog.map.center, zoom: startZoom,
         bearing: 0, pitch: 0, duration: 900
       });
       showToast('View reset to the starting extent.');
@@ -1677,7 +1713,11 @@ async function applyFeatured(entry) {
     refreshLegend();
     refreshTimeSlider();
     if (entry.view && state.map) {
-      state.map.flyTo({ center: entry.view.center, zoom: entry.view.zoom, duration: 900 });
+      // Phones have a much narrower viewport, so a featured map's desktop-tuned
+      // zoom lands too close. Pull it out a bit on small screens only.
+      const narrow = window.matchMedia && window.matchMedia('(max-width: 720px)').matches;
+      const z = narrow ? Math.max(state.map.getMinZoom(), entry.view.zoom - 1.5) : entry.view.zoom;
+      state.map.flyTo({ center: entry.view.center, zoom: z, duration: 900 });
     }
     markDirty();
     showToast('Loaded: ' + (entry.label || 'featured map'));
@@ -1787,6 +1827,28 @@ function readPermalink() {
 async function copyPermalink() {
   const url = buildPermalink();
   history.replaceState(null, '', url); // reflect it in the address bar
+  try {
+    await navigator.clipboard.writeText(url);
+    showToast('Shareable link copied to clipboard.');
+  } catch {
+    showToast('Link is in the address bar \u2014 copy it to share.');
+  }
+}
+
+// Share the current view: on devices with a native share sheet (phones), hand off
+// to the OS so the link can go to Messages/Mail/etc.; otherwise copy to clipboard.
+async function shareCurrentView() {
+  const url = buildPermalink();
+  history.replaceState(null, '', url); // reflect it in the address bar either way
+  const shareData = {
+    title: 'Community Data Map',
+    text: 'Check out this Community Data Map view',
+    url
+  };
+  if (navigator.share) {
+    try { await navigator.share(shareData); return; }
+    catch (e) { if (e && e.name === 'AbortError') return; /* fall through to copy */ }
+  }
   try {
     await navigator.clipboard.writeText(url);
     showToast('Shareable link copied to clipboard.');

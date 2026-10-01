@@ -380,9 +380,13 @@ const ICONS = {
   search: '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>',
   locate: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>',
   profile: '<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
-  newmap: '<svg viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/><path d="M12 12v6M9 15h6"/></svg>'
+  newmap: '<svg viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/><path d="M12 12v6M9 15h6"/></svg>',
+  share: '<svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.5l6.8-4M8.6 13.5l6.8 4"/></svg>'
 };
 function icon(name) { return `<span class="tb-ico">${ICONS[name] || ''}</span>`; }
+
+// Wrap a button's text so CSS can hide it (icon-only) on narrow screens.
+function label(text) { return `<span class="tb-label">${text}</span>`; }
 
 function divider() {
   const d = document.createElement('div');
@@ -651,14 +655,15 @@ export function buildToolbar(handlers) {
   const addBtn = document.createElement('button');
   addBtn.type = 'button';
   addBtn.className = 'tb-btn tb-primary';
-  addBtn.innerHTML = icon('add') + ' Data';
+  addBtn.innerHTML = icon('add') + label('Data');
   addBtn.title = 'Add a data indicator to the map';
   addBtn.addEventListener('click', () => handlers.onAddData && handlers.onAddData());
   bar.appendChild(addBtn);
 
   // View menu: panel/tool/control toggles (grouped with separators), then the
   // reset actions, then the Welcome card.
-  const view = makeDropdown(icon('view') + ' View', '', 'left');
+  const view = makeDropdown(icon('view') + label('View'), '', 'left');
+  view.btn.title = 'Show or hide panels and controls';
   let lastGroup = null;
   const viewToggles = handlers.panels.map(p => {
     if (lastGroup !== null && p.group !== lastGroup) menuSep(view.menu);
@@ -680,7 +685,7 @@ export function buildToolbar(handlers) {
   const tableBtn = document.createElement('button');
   tableBtn.type = 'button';
   tableBtn.className = 'tb-btn';
-  tableBtn.innerHTML = icon('table') + ' Compare';
+  tableBtn.innerHTML = icon('table') + label('Compare');
   tableBtn.title = 'Compare indicators across geographies in a table';
   tableBtn.addEventListener('click', () => handlers.onOpenTable && handlers.onOpenTable());
   bar.appendChild(tableBtn);
@@ -689,7 +694,7 @@ export function buildToolbar(handlers) {
   const profBtn = document.createElement('button');
   profBtn.type = 'button';
   profBtn.className = 'tb-btn';
-  profBtn.innerHTML = icon('profile') + ' Profile';
+  profBtn.innerHTML = icon('profile') + label('Profile');
   profBtn.title = 'See all indicators for one geography';
   profBtn.addEventListener('click', () => handlers.onOpenProfile && handlers.onOpenProfile());
   bar.appendChild(profBtn);
@@ -706,7 +711,8 @@ export function buildToolbar(handlers) {
   bar.appendChild(spacer2);
 
   // Map menu: Save / Saved Maps / New (carries the unsaved-changes dot).
-  const mapMenu = makeDropdown(icon('map') + ' Map', 'tb-map-btn');
+  const mapMenu = makeDropdown(icon('map') + label('Map'), 'tb-map-btn');
+  mapMenu.btn.title = 'Save, load, share, or feature maps';
   mapMenuBtn = mapMenu.btn;
   menuAction(mapMenu.menu, 'Featured Maps\u2026', handlers.onOpenFeatured);
   menuAction(mapMenu.menu, 'Import Places (CSV)\u2026', handlers.onImportPlaces);
@@ -726,13 +732,24 @@ export function buildToolbar(handlers) {
   const newMapBtn = document.createElement('button');
   newMapBtn.type = 'button';
   newMapBtn.className = 'tb-btn';
-  newMapBtn.innerHTML = icon('newmap') + ' New Map';
+  newMapBtn.innerHTML = icon('newmap') + label('New Map');
   newMapBtn.title = 'Start a fresh map (clears the current one)';
   newMapBtn.addEventListener('click', () => handlers.onNewMap && handlers.onNewMap());
   bar.appendChild(newMapBtn);
 
+  // Share: one-tap share of the current view (native share sheet on mobile, copy
+  // link elsewhere). Promoted from the Map menu's "Copy Shareable Link".
+  const shareBtn = document.createElement('button');
+  shareBtn.type = 'button';
+  shareBtn.className = 'tb-btn';
+  shareBtn.innerHTML = icon('share') + label('Share');
+  shareBtn.title = 'Share the current map view';
+  shareBtn.addEventListener('click', () => handlers.onShare && handlers.onShare());
+  bar.appendChild(shareBtn);
+
   // Export menu.
-  const exp = makeDropdown(icon('export') + ' Export');
+  const exp = makeDropdown(icon('export') + label('Export'));
+  exp.btn.title = 'Export the map or data';
   menuAction(exp.menu, 'Image (PNG)', handlers.onExportImage);
   menuAction(exp.menu, 'PDF (print)', handlers.onExportPdf);
   menuAction(exp.menu, 'Data (GeoJSON)', handlers.onExportData);

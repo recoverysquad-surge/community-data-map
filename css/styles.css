@@ -31,7 +31,11 @@ html, body {
 /* ---------- Full-bleed map ---------- */
 #app {
   position: relative;
+  /* 100dvh tracks the *visible* viewport on mobile (shrinks when the browser's
+     address/nav bars show) so the bottom dock isn't hidden behind phone chrome.
+     Falls back to 100vh where dvh isn't supported. */
   height: 100vh;
+  height: 100dvh;
   width: 100vw;
   overflow: hidden;
 }
@@ -2250,18 +2254,23 @@ html, body {
 }
 
 @media (max-width: 720px) {
-  /* Toolbar: let the search box grow and everything wrap comfortably. Drop the
-     "Central Indiana" subtitle and shrink the wordmark to reclaim the first row. */
-  #toolbar { flex-wrap: wrap; overflow-x: visible; gap: 6px 8px; padding: 6px 10px; }
+  /* Toolbar: compact, icon-only buttons so the whole bar fits in ~1 row + the
+     search row (instead of wrapping to three). Labels are hidden; each button
+     keeps a title tooltip + accessible name. */
+  #toolbar { flex-wrap: wrap; overflow-x: visible; gap: 6px; padding: 6px 8px; }
   .tb-search { flex: 1 1 100%; min-width: 0; order: 99; }
   .tb-divider { display: none; }
-  .tb-btn { font-size: 12px; padding: 6px 9px; }
+  .tb-btn { font-size: 12px; padding: 8px; gap: 0; }
+  .tb-btn .tb-label { display: none; }          /* icon-only on phones */
+  .tb-btn .tb-caret { margin-left: 2px; }
   .tb-logo .tb-logo-sub { display: none; }
-  .tb-logo .tb-logo-mark { font-size: 16px; }
+  .tb-logo .tb-logo-mark { font-size: 15px; }
+  .tb-spacer { flex: 0 0 0; }                     /* don't force buttons to wrap early */
 
   /* Docks span the full width and stack; panels go full-bleed and shorter. The
      left dock holds Basemap + Layers at the top; Legend docks to the bottom. On
-     first load these panels start collapsed (see JS) so the map stays the hero. */
+     first load these panels start collapsed (see JS) so the map stays the hero.
+     The bottom dock also clears the phone's home-indicator safe area. */
   #dock, #dock-right {
     left: 0; right: 0;
     padding: 10px;
@@ -2269,7 +2278,7 @@ html, body {
     max-height: none;
   }
   #dock { top: calc(var(--toolbar-h, 52px) + 4px); }
-  #dock-right { top: auto; bottom: 0; }
+  #dock-right { top: auto; bottom: 0; padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px)); }
   .float-panel { width: auto; max-width: none; max-height: 42vh; }
   #panel-layers .float-panel-body { max-height: 34vh; }
   /* A collapsed panel is just its title bar — make that obvious as a tap target. */
