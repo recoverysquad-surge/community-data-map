@@ -5,13 +5,21 @@
 export function makeDraggable(panelEl, handleEl, onChange) {
   let startX = 0, startY = 0, startLeft = 0, startTop = 0, moved = false;
 
+  // The toolbar is fixed at the top (higher z-index), so clamp the top of a dragged
+  // panel below it — otherwise panels slide up and hide behind the toolbar.
+  const toolbarBottom = () => {
+    const bar = document.getElementById('toolbar');
+    return bar ? Math.round(bar.getBoundingClientRect().bottom) + 4 : 0;
+  };
+
   const onMove = (e) => {
     const w = panelEl.offsetWidth;
     const h = panelEl.offsetHeight;
+    const topMin = toolbarBottom();
     let left = startLeft + (e.clientX - startX);
     let top = startTop + (e.clientY - startY);
     left = Math.max(0, Math.min(left, window.innerWidth - w));
-    top = Math.max(0, Math.min(top, window.innerHeight - h));
+    top = Math.max(topMin, Math.min(top, window.innerHeight - h));
     panelEl.style.left = left + 'px';
     panelEl.style.top = top + 'px';
     moved = true;
