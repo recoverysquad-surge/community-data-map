@@ -237,11 +237,14 @@ html, body {
   padding: 1px 6px;
 }
 
-/* Timeline panel — floating, bottom-center by default; draggable like other panels. */
-.float-timeline {
-  position: absolute;
+/* Timeline panel — floating, bottom-center by default; draggable like other panels.
+   Uses .float-panel.float-timeline so its position/width beat the generic
+   .float-panel rules declared later in this file (position:relative, width:320px). */
+.float-panel.float-timeline {
+  position: fixed;
   left: 50%;
   bottom: 24px;
+  top: auto;
   transform: translateX(-50%);
   width: 460px;
   max-width: 82vw;
@@ -998,6 +1001,9 @@ html, body {
   border-bottom: 2px solid var(--accent);
   cursor: grab;
   user-select: none;
+  /* Let pointer-drag move the window instead of the browser panning the map
+     behind it on touch devices (matches .float-panel-header). */
+  touch-action: none;
 }
 .savi-info-header:active { cursor: grabbing; }
 .savi-info-close {
@@ -2253,16 +2259,22 @@ html, body {
   .tb-search { flex: 1 1 100%; min-width: 0; order: 99; }
 }
 
+/* Hamburger menu: desktop uses the individual toolbar buttons, so hide it there;
+   it only appears on narrow screens (see the mobile block below). */
+.tb-hamburger { display: none; }
+
 @media (max-width: 720px) {
-  /* Toolbar: compact, icon-only buttons so the whole bar fits in ~1 row + the
-     search row (instead of wrapping to three). Labels are hidden; each button
-     keeps a title tooltip + accessible name. */
+  /* Toolbar: on phones the individual buttons collapse into a single hamburger
+     menu; only the brand, hamburger and full-width search row remain. */
   #toolbar { flex-wrap: wrap; overflow-x: visible; gap: 6px; padding: 6px 8px; }
   .tb-search { flex: 1 1 100%; min-width: 0; order: 99; }
   .tb-divider { display: none; }
   .tb-btn { font-size: 12px; padding: 8px; gap: 0; }
   .tb-btn .tb-label { display: none; }          /* icon-only on phones */
   .tb-btn .tb-caret { margin-left: 2px; }
+  .tb-mobile-hide { display: none !important; }  /* folded into the hamburger */
+  .tb-hamburger { display: inline-flex; margin-left: auto; }
+  .tb-hamburger .tb-caret { display: none; }
   .tb-logo .tb-logo-sub { display: none; }
   .tb-logo .tb-logo-mark { font-size: 15px; }
   .tb-spacer { flex: 0 0 0; }                     /* don't force buttons to wrap early */

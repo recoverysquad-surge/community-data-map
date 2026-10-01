@@ -381,7 +381,8 @@ const ICONS = {
   locate: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>',
   profile: '<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
   newmap: '<svg viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/><path d="M12 12v6M9 15h6"/></svg>',
-  share: '<svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.5l6.8-4M8.6 13.5l6.8 4"/></svg>'
+  share: '<svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.5l6.8-4M8.6 13.5l6.8 4"/></svg>',
+  menu: '<svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>'
 };
 function icon(name) { return `<span class="tb-ico">${ICONS[name] || ''}</span>`; }
 
@@ -654,7 +655,7 @@ export function buildToolbar(handlers) {
   // Primary action: + Add Data (promoted from the Layers panel).
   const addBtn = document.createElement('button');
   addBtn.type = 'button';
-  addBtn.className = 'tb-btn tb-primary';
+  addBtn.className = 'tb-btn tb-primary tb-mobile-hide';
   addBtn.innerHTML = icon('add') + label('Data');
   addBtn.title = 'Add a data indicator to the map';
   addBtn.addEventListener('click', () => handlers.onAddData && handlers.onAddData());
@@ -663,6 +664,7 @@ export function buildToolbar(handlers) {
   // View menu: panel/tool/control toggles (grouped with separators), then the
   // reset actions, then the Welcome card.
   const view = makeDropdown(icon('view') + label('View'), '', 'left');
+  view.wrap.classList.add('tb-mobile-hide');
   view.btn.title = 'Show or hide panels and controls';
   let lastGroup = null;
   const viewToggles = handlers.panels.map(p => {
@@ -684,7 +686,7 @@ export function buildToolbar(handlers) {
   // Compare: open the tabular data view.
   const tableBtn = document.createElement('button');
   tableBtn.type = 'button';
-  tableBtn.className = 'tb-btn';
+  tableBtn.className = 'tb-btn tb-mobile-hide';
   tableBtn.innerHTML = icon('table') + label('Compare');
   tableBtn.title = 'Compare indicators across geographies in a table';
   tableBtn.addEventListener('click', () => handlers.onOpenTable && handlers.onOpenTable());
@@ -693,7 +695,7 @@ export function buildToolbar(handlers) {
   // Profile: single-geography fact sheet.
   const profBtn = document.createElement('button');
   profBtn.type = 'button';
-  profBtn.className = 'tb-btn';
+  profBtn.className = 'tb-btn tb-mobile-hide';
   profBtn.innerHTML = icon('profile') + label('Profile');
   profBtn.title = 'See all indicators for one geography';
   profBtn.addEventListener('click', () => handlers.onOpenProfile && handlers.onOpenProfile());
@@ -712,6 +714,7 @@ export function buildToolbar(handlers) {
 
   // Map menu: Save / Saved Maps / New (carries the unsaved-changes dot).
   const mapMenu = makeDropdown(icon('map') + label('Map'), 'tb-map-btn');
+  mapMenu.wrap.classList.add('tb-mobile-hide');
   mapMenu.btn.title = 'Save, load, share, or feature maps';
   mapMenuBtn = mapMenu.btn;
   menuAction(mapMenu.menu, 'Featured Maps\u2026', handlers.onOpenFeatured);
@@ -731,7 +734,7 @@ export function buildToolbar(handlers) {
   // New Map: promoted to a visible toolbar button (was buried in the Map menu).
   const newMapBtn = document.createElement('button');
   newMapBtn.type = 'button';
-  newMapBtn.className = 'tb-btn';
+  newMapBtn.className = 'tb-btn tb-mobile-hide';
   newMapBtn.innerHTML = icon('newmap') + label('New Map');
   newMapBtn.title = 'Start a fresh map (clears the current one)';
   newMapBtn.addEventListener('click', () => handlers.onNewMap && handlers.onNewMap());
@@ -741,7 +744,7 @@ export function buildToolbar(handlers) {
   // link elsewhere). Promoted from the Map menu's "Copy Shareable Link".
   const shareBtn = document.createElement('button');
   shareBtn.type = 'button';
-  shareBtn.className = 'tb-btn';
+  shareBtn.className = 'tb-btn tb-mobile-hide';
   shareBtn.innerHTML = icon('share') + label('Share');
   shareBtn.title = 'Share the current map view';
   shareBtn.addEventListener('click', () => handlers.onShare && handlers.onShare());
@@ -749,12 +752,58 @@ export function buildToolbar(handlers) {
 
   // Export menu.
   const exp = makeDropdown(icon('export') + label('Export'));
+  exp.wrap.classList.add('tb-mobile-hide');
   exp.btn.title = 'Export the map or data';
   menuAction(exp.menu, 'Image (PNG)', handlers.onExportImage);
   menuAction(exp.menu, 'PDF (print)', handlers.onExportPdf);
   menuAction(exp.menu, 'Data (GeoJSON)', handlers.onExportData);
   menuAction(exp.menu, 'Data (CSV)', handlers.onExportCsv);
   bar.appendChild(exp.wrap);
+
+  // Mobile-only hamburger: one menu that gathers every toolbar action/toggle so
+  // the individual buttons (hidden on narrow screens via .tb-mobile-hide) remain
+  // reachable. Inserted right after the brand so it sits at the far left on phones.
+  const burger = makeDropdown(icon('menu'), '', 'left');
+  burger.wrap.classList.add('tb-hamburger');
+  burger.btn.title = 'Menu';
+  burger.btn.setAttribute('aria-label', 'Menu');
+  menuAction(burger.menu, 'Add Data\u2026', handlers.onAddData);
+  menuAction(burger.menu, 'Compare (Table)\u2026', handlers.onOpenTable);
+  menuAction(burger.menu, 'Community Profile\u2026', handlers.onOpenProfile);
+  menuSep(burger.menu);
+  // Panel / control toggles (same list the View menu shows).
+  let bGroup = null;
+  const burgerToggles = handlers.panels.map(p => {
+    if (bGroup !== null && p.group !== bGroup) menuSep(burger.menu);
+    bGroup = p.group;
+    return menuToggle(burger.menu, p.label,
+      p.isOn ? p.isOn : () => !p.el.classList.contains('hidden'),
+      () => (p.onToggle ? p.onToggle() : p.el.classList.toggle('hidden')));
+  });
+  menuSep(burger.menu);
+  menuAction(burger.menu, 'Featured Maps\u2026', handlers.onOpenFeatured);
+  menuAction(burger.menu, 'Import Places (CSV)\u2026', handlers.onImportPlaces);
+  menuSep(burger.menu);
+  menuAction(burger.menu, 'Save Map\u2026', handlers.onSave);
+  menuAction(burger.menu, 'Saved Maps\u2026', handlers.onOpenSavedMaps);
+  menuAction(burger.menu, 'New Map', handlers.onNewMap);
+  menuAction(burger.menu, 'Share\u2026', handlers.onShare);
+  menuAction(burger.menu, 'Copy Shareable Link', handlers.onCopyLink);
+  menuSep(burger.menu);
+  menuAction(burger.menu, 'Export Image (PNG)', handlers.onExportImage);
+  menuAction(burger.menu, 'Export PDF (print)', handlers.onExportPdf);
+  menuAction(burger.menu, 'Export Data (GeoJSON)', handlers.onExportData);
+  menuAction(burger.menu, 'Export Data (CSV)', handlers.onExportCsv);
+  menuSep(burger.menu);
+  menuAction(burger.menu, 'Reset View', handlers.onResetView);
+  menuAction(burger.menu, 'Reset Layout', handlers.onResetLayout);
+  const burgerAutosave = menuToggle(burger.menu, 'Autosave',
+    handlers.getAutosave || (() => false),
+    handlers.onToggleAutosave || (() => {}));
+  menuSep(burger.menu);
+  menuAction(burger.menu, 'Welcome Card\u2026', handlers.onOpenHelp);
+  burger.menu._onOpen = () => { burgerToggles.forEach(t => t.render()); burgerAutosave.render(); };
+  bar.insertBefore(burger.wrap, addBtn);
 
   document.addEventListener('click', closeAllMenus);
 }
