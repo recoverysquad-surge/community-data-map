@@ -808,8 +808,9 @@ export function buildToolbar(handlers) {
   // link elsewhere). Promoted from the Map menu's "Copy Shareable Link".
   const shareBtn = document.createElement('button');
   shareBtn.type = 'button';
-  shareBtn.className = 'tb-btn tb-mobile-hide';
+  shareBtn.className = 'tb-btn tb-icononly tb-mobile-hide';
   shareBtn.innerHTML = icon('share') + label('Share');
+  shareBtn.setAttribute('aria-label', 'Share');   // label is icon-only on desktop
   shareBtn.title = 'Share the current map view';
   shareBtn.addEventListener('click', () => handlers.onShare && handlers.onShare());
   bar.appendChild(shareBtn);
@@ -817,6 +818,8 @@ export function buildToolbar(handlers) {
   // Export menu.
   const exp = makeDropdown(icon('export') + label('Export'));
   exp.wrap.classList.add('tb-mobile-hide');
+  exp.btn.classList.add('tb-icononly');
+  exp.btn.setAttribute('aria-label', 'Export');   // label is icon-only on desktop
   exp.btn.title = 'Export the map or data';
   menuAction(exp.menu, 'Image (PNG)', handlers.onExportImage);
   menuAction(exp.menu, 'PDF (print)', handlers.onExportPdf);

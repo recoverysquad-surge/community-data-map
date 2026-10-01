@@ -153,6 +153,8 @@ html, body {
 /* Layers/Legend are icon-only everywhere (the icon + title/aria-label carry the meaning),
    keeping the bar compact. */
 .tb-toggle .tb-label { display: none; }
+/* Export/Share are icon-only on desktop too (they keep title + aria-label for naming). */
+.tb-icononly .tb-label { display: none; }
 
 /* Address / place search box in the toolbar. */
 .tb-search {
