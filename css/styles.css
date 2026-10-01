@@ -498,14 +498,16 @@ html, body {
 /* ---------- Left dock (panels start here, aligned left) ---------- */
 #dock {
   position: absolute;
-  top: 56px;
+  /* Clears the toolbar; --toolbar-h is kept in sync with the toolbar's real
+     height in JS so wrapped (mobile) toolbars don't overlap the panels. */
+  top: calc(var(--toolbar-h, 52px) + 4px);
   left: 0;
   z-index: 10;
   padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  max-height: calc(100vh - 56px);
+  max-height: calc(100vh - var(--toolbar-h, 52px) - 4px);
   /* Let clicks pass through the gaps to the map; panels re-enable pointer events. */
   pointer-events: none;
 }
@@ -514,7 +516,7 @@ html, body {
 /* ---------- Right dock (Legend starts here, aligned right) ---------- */
 #dock-right {
   position: absolute;
-  top: 56px;
+  top: calc(var(--toolbar-h, 52px) + 4px);
   right: 0;
   z-index: 10;
   padding: 16px;
@@ -522,7 +524,7 @@ html, body {
   flex-direction: column;
   align-items: flex-end;
   gap: 12px;
-  max-height: calc(100vh - 56px);
+  max-height: calc(100vh - var(--toolbar-h, 52px) - 4px);
   pointer-events: none;
 }
 #dock-right .float-panel { pointer-events: auto; }
@@ -2248,22 +2250,30 @@ html, body {
 }
 
 @media (max-width: 720px) {
-  /* Toolbar: let the search box grow and everything wrap comfortably. */
+  /* Toolbar: let the search box grow and everything wrap comfortably. Drop the
+     "Central Indiana" subtitle and shrink the wordmark to reclaim the first row. */
   #toolbar { flex-wrap: wrap; overflow-x: visible; gap: 6px 8px; padding: 6px 10px; }
   .tb-search { flex: 1 1 100%; min-width: 0; order: 99; }
   .tb-divider { display: none; }
   .tb-btn { font-size: 12px; padding: 6px 9px; }
+  .tb-logo .tb-logo-sub { display: none; }
+  .tb-logo .tb-logo-mark { font-size: 16px; }
 
-  /* Docks span the full width and stack; panels go full-bleed and shorter. */
+  /* Docks span the full width and stack; panels go full-bleed and shorter. The
+     left dock holds Basemap + Layers at the top; Legend docks to the bottom. On
+     first load these panels start collapsed (see JS) so the map stays the hero. */
   #dock, #dock-right {
     left: 0; right: 0;
     padding: 10px;
     align-items: stretch;
     max-height: none;
   }
+  #dock { top: calc(var(--toolbar-h, 52px) + 4px); }
   #dock-right { top: auto; bottom: 0; }
   .float-panel { width: auto; max-width: none; max-height: 42vh; }
   #panel-layers .float-panel-body { max-height: 34vh; }
+  /* A collapsed panel is just its title bar — make that obvious as a tap target. */
+  .float-panel.collapsed .float-panel-header { cursor: pointer; }
 
   /* Timeline + swipe controls: hug the screen width. */
   .float-timeline { width: auto; left: 10px; right: 10px; transform: none; max-width: none; }

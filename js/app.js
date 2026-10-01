@@ -1,21 +1,21 @@
 // SAVI Single-Map Interface — app entry point.
 // Initializes MapLibre, loads the layer catalog, and wires up UI.
 
-import { addLayer, updateLayerVisibility, updateLayerOpacity, bindPopups, reAddAllLayers, applyLayerOrder, setLayerColor, setLayerPattern, setLayerPatternOpacity, setLayerRamp, reclassify, removeLayer, applyIndicatorSelection, RAMPS } from './layers.js?v=63';
-import { buildLayerPanel, buildLegend, buildBasemapSwitcher, openCatalogModal } from './ui.js?v=63';
-import { makeDraggable, makeCollapsible, makeResizable, resetPanelLayout } from './panels.js?v=63';
+import { addLayer, updateLayerVisibility, updateLayerOpacity, bindPopups, reAddAllLayers, applyLayerOrder, setLayerColor, setLayerPattern, setLayerPatternOpacity, setLayerRamp, reclassify, removeLayer, applyIndicatorSelection, RAMPS } from './layers.js?v=64';
+import { buildLayerPanel, buildLegend, buildBasemapSwitcher, openCatalogModal } from './ui.js?v=64';
+import { makeDraggable, makeCollapsible, makeResizable, resetPanelLayout } from './panels.js?v=64';
 import { buildToolbar, showToast, exportImage, exportPdf, exportData, exportLayer, setSaveDirty,
   listSavedMaps, getSavedMap, saveNamedMap, deleteSavedMap,
   getActiveMapId, setActiveMapId, clearActiveMapId, withLoading,
-  openSaveMapDialog, openSavedMapsDialog, downloadBlob, stamp } from './toolbar.js?v=63';
-import { ANY, loadDataset, getCategories, getIndicator, getLevels, availableYears, resolveSelection, getValueMap, geometryFor } from './dataset.js?v=63';
-import { openTableModal } from './table.js?v=63';
-import { openProfileModal } from './profile.js?v=63';
-import { openSwipe, closeSwipe, isSwipeOpen } from './swipe.js?v=63';
-import { openMetadataModal } from './metadata.js?v=63';
-import { openWelcomeCard } from './welcome.js?v=63';
-import { openFeaturedGallery } from './featured.js?v=63';
-import { openImportPlaces } from './import_places.js?v=63';
+  openSaveMapDialog, openSavedMapsDialog, downloadBlob, stamp } from './toolbar.js?v=64';
+import { ANY, loadDataset, getCategories, getIndicator, getLevels, availableYears, resolveSelection, getValueMap, geometryFor } from './dataset.js?v=64';
+import { openTableModal } from './table.js?v=64';
+import { openProfileModal } from './profile.js?v=64';
+import { openSwipe, closeSwipe, isSwipeOpen } from './swipe.js?v=64';
+import { openMetadataModal } from './metadata.js?v=64';
+import { openWelcomeCard } from './welcome.js?v=64';
+import { openFeaturedGallery } from './featured.js?v=64';
+import { openImportPlaces } from './import_places.js?v=64';
 
 // ---- Basemap definitions (all key-free) ----
 export const BASEMAPS = {
@@ -593,6 +593,18 @@ async function init() {
 
   // Restore saved control visibility + floating-panel layout (defaults if none saved).
   applySavedUiState(saved);
+
+  // Keep --toolbar-h synced with the toolbar's real height so the docks always
+  // clear it (on narrow screens the button row wraps to 2–3 rows).
+  syncToolbarHeight();
+
+  // On a phone with no explicit saved layout, start the panels collapsed so the
+  // map is the hero; each panel is one tap away from its title bar. Desktop and
+  // any restored saved map are untouched.
+  if (!(saved && Array.isArray(saved.panels)) &&
+      window.matchMedia && window.matchMedia('(max-width: 720px)').matches) {
+    ['panel-basemap', 'panel-layers', 'panel-legend'].forEach(collapsePanelById);
+  }
 
   // First-run welcome card (one-time; re-openable from Help). Gated by a flag so it
   // only auto-shows once per browser.
@@ -1855,6 +1867,28 @@ function captureMapState() {
 // Apply a saved snapshot's control visibility + floating-panel layout. Called after
 // the toolbar/panels are wired (so the elements and controls exist). Restores the
 // View-menu control toggles and each panel's open/closed/collapsed/dragged state.
+// Keep the --toolbar-h CSS variable in sync with the toolbar's rendered height so
+// the left/right docks start just below it. The toolbar wraps on narrow screens,
+// so its height changes with the viewport width.
+function syncToolbarHeight() {
+  const bar = document.getElementById('toolbar');
+  if (!bar) return;
+  const set = () => document.documentElement.style.setProperty('--toolbar-h', bar.offsetHeight + 'px');
+  set();
+  if (window.ResizeObserver) new ResizeObserver(set).observe(bar);
+  else window.addEventListener('resize', set);
+}
+
+// Collapse a panel to just its title bar without marking the map dirty (mirrors
+// makeCollapsible's button sync, but silent — used for the mobile default).
+function collapsePanelById(id) {
+  const p = document.getElementById(id);
+  if (!p || p.classList.contains('collapsed')) return;
+  p.classList.add('collapsed');
+  const btn = p.querySelector('.collapse-btn');
+  if (btn) { btn.textContent = '+'; btn.setAttribute('aria-label', 'Expand panel'); }
+}
+
 function applySavedUiState(saved) {
   if (!saved) return;
   if (saved.controls) {
