@@ -493,6 +493,20 @@ html, body {
 }
 .tb-menu-check.checked::before { content: '\2713'; }
 
+/* Collapsible category inside a menu (mobile hamburger submenus). The header shows
+   a caret that rotates when open; the submenu items indent and stay hidden until
+   the category is expanded. */
+.tb-menu-group {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 600;
+}
+.tb-sub-caret { font-size: 10px; opacity: 0.65; transition: transform 0.15s; }
+.tb-menu-group.open .tb-sub-caret { transform: rotate(180deg); }
+.tb-submenu { display: none; padding-left: 8px; margin: 2px 0 2px 4px; border-left: 2px solid var(--border); }
+.tb-submenu.open { display: block; }
+
 /* Keep MapLibre's top controls clear of the toolbar. */
 .maplibregl-ctrl-top-right { top: 64px; }
 
@@ -1413,6 +1427,7 @@ html, body {
   border-bottom: 2px solid var(--accent);
   cursor: grab;
   user-select: none;
+  touch-action: none;   /* drag the popup on touch instead of panning the map */
 }
 .sel-popup-header:active { cursor: grabbing; }
 .sel-popup-title {
@@ -1516,7 +1531,7 @@ html, body {
 .catalog-credit a { color: var(--accent-text); font-weight: 700; text-decoration: none; }
 .catalog-credit a:hover { text-decoration: underline; }
 
-/* About-the-data (metadata) — movable floating window; close X in the TOP-LEFT. */
+/* About-the-data (metadata) — movable floating window; close X on the far RIGHT. */
 .meta-window {
   position: fixed;
   z-index: 1200;
@@ -1542,6 +1557,7 @@ html, body {
   font-weight: 700;
   cursor: grab;
   user-select: none;
+  touch-action: none;   /* drag the window on touch instead of panning the map */
 }
 .meta-window-header:active { cursor: grabbing; }
 .meta-window-close {
@@ -2178,6 +2194,7 @@ html, body {
   display: flex; align-items: center; justify-content: space-between;
   padding: 10px 12px; cursor: grab; user-select: none;
   background: var(--accent, #d4af37); color: var(--on-accent, #1b1b1b);
+  touch-action: none;   /* drag the dialog on touch instead of panning the map */
 }
 .rename-header:active { cursor: grabbing; }
 .rename-title { font-size: 13px; font-weight: 700; }
@@ -2275,6 +2292,13 @@ html, body {
   .tb-mobile-hide { display: none !important; }  /* folded into the hamburger */
   .tb-hamburger { display: inline-flex; margin-left: auto; }
   .tb-hamburger .tb-caret { display: none; }
+  /* The hamburger's menu can be tall once categories expand — cap it to the
+     viewport and let it scroll instead of running off-screen. */
+  .tb-hamburger .tb-menu {
+    max-height: calc(100vh - var(--toolbar-h, 52px) - 16px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
   .tb-logo .tb-logo-sub { display: none; }
   .tb-logo .tb-logo-mark { font-size: 15px; }
   .tb-spacer { flex: 0 0 0; }                     /* don't force buttons to wrap early */

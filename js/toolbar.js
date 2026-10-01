@@ -480,6 +480,31 @@ function menuSep(menu) {
   menu.appendChild(s);
 }
 
+// A collapsible sub-section inside a menu (used by the mobile hamburger so its long
+// action list folds into desktop-like categories). The header toggles the returned
+// container open/closed; fill it with menuAction/menuToggle items. Clicks inside the
+// container don't bubble to the document "close all menus" handler, so toggling a
+// panel keeps the hamburger open — only picking an action (menuAction) closes it.
+function menuGroup(menu, labelText) {
+  const header = document.createElement('button');
+  header.type = 'button';
+  header.className = 'tb-menu-item tb-menu-group';
+  header.setAttribute('aria-expanded', 'false');
+  header.innerHTML = `<span>${labelText}</span><span class="tb-sub-caret">\u25be</span>`;
+  const sub = document.createElement('div');
+  sub.className = 'tb-submenu';
+  header.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const open = sub.classList.toggle('open');
+    header.classList.toggle('open', open);
+    header.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+  sub.addEventListener('click', (e) => e.stopPropagation());
+  menu.appendChild(header);
+  menu.appendChild(sub);
+  return sub;
+}
+
 // The Map dropdown button — carries the unsaved-changes dot.
 let mapMenuBtn = null;
 
@@ -767,42 +792,62 @@ export function buildToolbar(handlers) {
   burger.wrap.classList.add('tb-hamburger');
   burger.btn.title = 'Menu';
   burger.btn.setAttribute('aria-label', 'Menu');
+
+  // Top-level primary actions.
   menuAction(burger.menu, 'Add Data\u2026', handlers.onAddData);
   menuAction(burger.menu, 'Compare (Table)\u2026', handlers.onOpenTable);
   menuAction(burger.menu, 'Community Profile\u2026', handlers.onOpenProfile);
   menuSep(burger.menu);
-  // Panel / control toggles (same list the View menu shows).
+
+  // View category: panel / control toggles + resets + welcome (mirrors the View menu).
+  const viewSub = menuGroup(burger.menu, 'View');
   let bGroup = null;
   const burgerToggles = handlers.panels.map(p => {
-    if (bGroup !== null && p.group !== bGroup) menuSep(burger.menu);
+    if (bGroup !== null && p.group !== bGroup) menuSep(viewSub);
     bGroup = p.group;
-    return menuToggle(burger.menu, p.label,
+    return menuToggle(viewSub, p.label,
       p.isOn ? p.isOn : () => !p.el.classList.contains('hidden'),
       () => (p.onToggle ? p.onToggle() : p.el.classList.toggle('hidden')));
   });
-  menuSep(burger.menu);
-  menuAction(burger.menu, 'Featured Maps\u2026', handlers.onOpenFeatured);
-  menuAction(burger.menu, 'Import Places (CSV)\u2026', handlers.onImportPlaces);
-  menuSep(burger.menu);
-  menuAction(burger.menu, 'Save Map\u2026', handlers.onSave);
-  menuAction(burger.menu, 'Saved Maps\u2026', handlers.onOpenSavedMaps);
-  menuAction(burger.menu, 'New Map', handlers.onNewMap);
-  menuAction(burger.menu, 'Share\u2026', handlers.onShare);
-  menuAction(burger.menu, 'Copy Shareable Link', handlers.onCopyLink);
-  menuSep(burger.menu);
-  menuAction(burger.menu, 'Export Image (PNG)', handlers.onExportImage);
-  menuAction(burger.menu, 'Export PDF (print)', handlers.onExportPdf);
-  menuAction(burger.menu, 'Export Data (GeoJSON)', handlers.onExportData);
-  menuAction(burger.menu, 'Export Data (CSV)', handlers.onExportCsv);
-  menuSep(burger.menu);
-  menuAction(burger.menu, 'Reset View', handlers.onResetView);
-  menuAction(burger.menu, 'Reset Layout', handlers.onResetLayout);
-  const burgerAutosave = menuToggle(burger.menu, 'Autosave',
+  menuSep(viewSub);
+  menuAction(viewSub, 'Reset View', handlers.onResetView);
+  menuAction(viewSub, 'Reset Layout', handlers.onResetLayout);
+  menuSep(viewSub);
+  menuAction(viewSub, 'Welcome Card\u2026', handlers.onOpenHelp);
+
+  // Map category (mirrors the Map menu).
+  const mapSub = menuGroup(burger.menu, 'Map');
+  menuAction(mapSub, 'Featured Maps\u2026', handlers.onOpenFeatured);
+  menuAction(mapSub, 'Import Places (CSV)\u2026', handlers.onImportPlaces);
+  menuSep(mapSub);
+  menuAction(mapSub, 'Save Map\u2026', handlers.onSave);
+  menuAction(mapSub, 'Saved Maps\u2026', handlers.onOpenSavedMaps);
+  menuAction(mapSub, 'New Map', handlers.onNewMap);
+  menuAction(mapSub, 'Share\u2026', handlers.onShare);
+  menuAction(mapSub, 'Copy Shareable Link', handlers.onCopyLink);
+  menuSep(mapSub);
+  const burgerAutosave = menuToggle(mapSub, 'Autosave',
     handlers.getAutosave || (() => false),
     handlers.onToggleAutosave || (() => {}));
-  menuSep(burger.menu);
-  menuAction(burger.menu, 'Welcome Card\u2026', handlers.onOpenHelp);
-  burger.menu._onOpen = () => { burgerToggles.forEach(t => t.render()); burgerAutosave.render(); };
+
+  // Export category (mirrors the Export menu).
+  const expSub = menuGroup(burger.menu, 'Export');
+  menuAction(expSub, 'Image (PNG)', handlers.onExportImage);
+  menuAction(expSub, 'PDF (print)', handlers.onExportPdf);
+  menuAction(expSub, 'Data (GeoJSON)', handlers.onExportData);
+  menuAction(expSub, 'Data (CSV)', handlers.onExportCsv);
+
+  // Re-sync toggles each time the hamburger opens; collapse all categories so it
+  // reopens compact.
+  burger.menu._onOpen = () => {
+    burgerToggles.forEach(t => t.render());
+    burgerAutosave.render();
+    burger.menu.querySelectorAll('.tb-submenu.open').forEach(s => s.classList.remove('open'));
+    burger.menu.querySelectorAll('.tb-menu-group.open').forEach(h => {
+      h.classList.remove('open');
+      h.setAttribute('aria-expanded', 'false');
+    });
+  };
   bar.insertBefore(burger.wrap, addBtn);
 
   document.addEventListener('click', closeAllMenus);

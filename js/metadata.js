@@ -3,8 +3,8 @@
 // (reporting level -> displays -> year range). Detailed source/methodology/units are
 // NOT harvested; those live on the classic SAVI site, which we link out to.
 
-import { getIndicator, availableLevels, availableDisplays, availableYears } from './dataset.js?v=68';
-import { makeDraggable } from './panels.js?v=68';
+import { getIndicator, availableLevels, availableDisplays, availableYears } from './dataset.js?v=69';
+import { makeDraggable } from './panels.js?v=69';
 
 const CLASSIC_URL = 'https://classic.savi.org/savi';
 
@@ -33,7 +33,7 @@ export function openMetadataModal(indicatorId) {
   if (existing) existing.remove();
 
   // A movable, non-blocking floating window (like the geography info-window) — the header is
-  // the drag handle and the close X sits in the TOP-LEFT corner.
+  // the drag handle and the close X sits on the far RIGHT (consistent with every window).
   const win = el('div', 'meta-window');
   win.id = 'meta-window';
   win.setAttribute('role', 'dialog');
@@ -44,8 +44,8 @@ export function openMetadataModal(indicatorId) {
   close.type = 'button';
   close.title = 'Close';
   close.setAttribute('aria-label', 'Close');
-  header.appendChild(close);                              // close X first => top-left
   header.appendChild(el('span', 'meta-window-title', 'About the Data'));
+  header.appendChild(close);                              // title left, close X far right
 
   const body = el('div', 'catalog-body meta-body');
 

@@ -1,21 +1,21 @@
 // SAVI Single-Map Interface — app entry point.
 // Initializes MapLibre, loads the layer catalog, and wires up UI.
 
-import { addLayer, updateLayerVisibility, updateLayerOpacity, bindPopups, reAddAllLayers, applyLayerOrder, setLayerColor, setLayerPattern, setLayerPatternOpacity, setLayerRamp, reclassify, removeLayer, applyIndicatorSelection, RAMPS } from './layers.js?v=68';
-import { buildLayerPanel, buildLegend, buildBasemapSwitcher, openCatalogModal } from './ui.js?v=68';
-import { makeDraggable, makeCollapsible, makeResizable, resetPanelLayout } from './panels.js?v=68';
+import { addLayer, updateLayerVisibility, updateLayerOpacity, bindPopups, reAddAllLayers, applyLayerOrder, setLayerColor, setLayerPattern, setLayerPatternOpacity, setLayerRamp, reclassify, removeLayer, applyIndicatorSelection, RAMPS } from './layers.js?v=69';
+import { buildLayerPanel, buildLegend, buildBasemapSwitcher, openCatalogModal } from './ui.js?v=69';
+import { makeDraggable, makeCollapsible, makeResizable, resetPanelLayout } from './panels.js?v=69';
 import { buildToolbar, showToast, exportImage, exportPdf, exportData, exportLayer, setSaveDirty,
   listSavedMaps, getSavedMap, saveNamedMap, deleteSavedMap,
   getActiveMapId, setActiveMapId, clearActiveMapId, withLoading,
-  openSaveMapDialog, openSavedMapsDialog, downloadBlob, stamp } from './toolbar.js?v=68';
-import { ANY, loadDataset, getCategories, getIndicator, getLevels, availableYears, resolveSelection, getValueMap, geometryFor } from './dataset.js?v=68';
-import { openTableModal } from './table.js?v=68';
-import { openProfileModal } from './profile.js?v=68';
-import { openSwipe, closeSwipe, isSwipeOpen } from './swipe.js?v=68';
-import { openMetadataModal } from './metadata.js?v=68';
-import { openWelcomeCard } from './welcome.js?v=68';
-import { openFeaturedGallery } from './featured.js?v=68';
-import { openImportPlaces } from './import_places.js?v=68';
+  openSaveMapDialog, openSavedMapsDialog, downloadBlob, stamp } from './toolbar.js?v=69';
+import { ANY, loadDataset, getCategories, getIndicator, getLevels, availableYears, resolveSelection, getValueMap, geometryFor } from './dataset.js?v=69';
+import { openTableModal } from './table.js?v=69';
+import { openProfileModal } from './profile.js?v=69';
+import { openSwipe, closeSwipe, isSwipeOpen } from './swipe.js?v=69';
+import { openMetadataModal } from './metadata.js?v=69';
+import { openWelcomeCard } from './welcome.js?v=69';
+import { openFeaturedGallery } from './featured.js?v=69';
+import { openImportPlaces } from './import_places.js?v=69';
 
 // ---- Basemap definitions (all key-free) ----
 export const BASEMAPS = {
@@ -2171,18 +2171,34 @@ function ensureAutosaveMap() {
 // Debounced autosave: when enabled, persist the current view after a short quiet
 // period. Auto-creates a saved map on first use so autosave works even if you never
 // did a manual "Save Map".
+function doAutosave() {
+  if (!state.autosave) return;
+  ensureAutosaveMap();
+  const active = state.activeMapId ? getSavedMap(state.activeMapId) : null;
+  if (!active) return;   // save failed (e.g. storage full)
+  saveNamedMap({ id: active.id, name: active.name, description: active.description, state: captureMapState() });
+  setSaveDirty(false);
+}
+
 function scheduleAutosave() {
   if (!state.autosave) return;
   if (state.autosaveTimer) clearTimeout(state.autosaveTimer);
-  state.autosaveTimer = setTimeout(() => {
-    state.autosaveTimer = null;
-    ensureAutosaveMap();
-    const active = state.activeMapId ? getSavedMap(state.activeMapId) : null;
-    if (!active) return;   // save failed (e.g. storage full)
-    saveNamedMap({ id: active.id, name: active.name, description: active.description, state: captureMapState() });
-    setSaveDirty(false);
-  }, 1500);
+  state.autosaveTimer = setTimeout(() => { state.autosaveTimer = null; doAutosave(); }, 1500);
 }
+
+// Persist a pending autosave immediately. The debounce means a quick refresh (or
+// tab close) within ~1.5s of a change would otherwise drop it — e.g. hide a panel
+// then refresh and it reappears. Flush on page hide so the last change survives.
+function flushAutosave() {
+  if (!state.autosaveTimer) return;
+  clearTimeout(state.autosaveTimer);
+  state.autosaveTimer = null;
+  doAutosave();
+}
+window.addEventListener('pagehide', flushAutosave);
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') flushAutosave();
+});
 
 function switchBasemap(key) {
   if (key === state.currentBasemap) return;
