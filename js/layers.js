@@ -1,6 +1,6 @@
 // SAVI — layer management: add/remove/style layers from config + popups.
 
-import { makeDraggable } from './panels.js?v=74';
+import { makeDraggable } from './panels.js?v=75';
 
 const loadedSources = new Set();
 

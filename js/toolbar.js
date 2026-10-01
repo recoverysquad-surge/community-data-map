@@ -782,7 +782,9 @@ export function buildToolbar(handlers) {
   mapMenu.btn.title = 'Save, load, share, or feature maps';
   mapMenuBtn = mapMenu.btn;
   menuAction(mapMenu.menu, 'Featured Maps\u2026', handlers.onOpenFeatured);
-  menuAction(mapMenu.menu, 'Import Places (CSV)\u2026', handlers.onImportPlaces);
+  const importSub = menuGroup(mapMenu.menu, 'Import Data');
+  menuAction(importSub, 'GeoJSON / KML\u2026', handlers.onImportGeojson);
+  menuAction(importSub, 'Places (CSV)\u2026', handlers.onImportPlaces);
   menuSep(mapMenu.menu);
   menuAction(mapMenu.menu, 'Save Map\u2026', handlers.onSave);
   menuAction(mapMenu.menu, 'Saved Maps\u2026', handlers.onOpenSavedMaps);
@@ -860,7 +862,9 @@ export function buildToolbar(handlers) {
   // Map category (mirrors the Map menu).
   const mapSub = menuGroup(burger.menu, 'Map');
   menuAction(mapSub, 'Featured Maps\u2026', handlers.onOpenFeatured);
-  menuAction(mapSub, 'Import Places (CSV)\u2026', handlers.onImportPlaces);
+  const importSubM = menuGroup(mapSub, 'Import Data');
+  menuAction(importSubM, 'GeoJSON / KML\u2026', handlers.onImportGeojson);
+  menuAction(importSubM, 'Places (CSV)\u2026', handlers.onImportPlaces);
   menuSep(mapSub);
   menuAction(mapSub, 'Save Map\u2026', handlers.onSave);
   menuAction(mapSub, 'Saved Maps\u2026', handlers.onOpenSavedMaps);

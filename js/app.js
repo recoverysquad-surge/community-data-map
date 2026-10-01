@@ -1,21 +1,22 @@
 // SAVI Single-Map Interface — app entry point.
 // Initializes MapLibre, loads the layer catalog, and wires up UI.
 
-import { addLayer, updateLayerVisibility, updateLayerOpacity, bindPopups, reAddAllLayers, applyLayerOrder, setLayerColor, setLayerPattern, setLayerPatternOpacity, setLayerRamp, reclassify, removeLayer, applyIndicatorSelection, RAMPS } from './layers.js?v=74';
-import { buildLayerPanel, buildLegend, buildBasemapSwitcher, openCatalogModal } from './ui.js?v=74';
-import { makeDraggable, makeCollapsible, makeResizable, resetPanelLayout } from './panels.js?v=74';
+import { addLayer, updateLayerVisibility, updateLayerOpacity, bindPopups, reAddAllLayers, applyLayerOrder, setLayerColor, setLayerPattern, setLayerPatternOpacity, setLayerRamp, reclassify, removeLayer, applyIndicatorSelection, RAMPS } from './layers.js?v=75';
+import { buildLayerPanel, buildLegend, buildBasemapSwitcher, openCatalogModal } from './ui.js?v=75';
+import { makeDraggable, makeCollapsible, makeResizable, resetPanelLayout } from './panels.js?v=75';
 import { buildToolbar, showToast, exportImage, exportPdf, exportData, exportLayer, setSaveDirty,
   listSavedMaps, getSavedMap, saveNamedMap, deleteSavedMap,
   getActiveMapId, setActiveMapId, clearActiveMapId, withLoading,
-  openSaveMapDialog, openSavedMapsDialog, downloadBlob, stamp } from './toolbar.js?v=74';
-import { ANY, loadDataset, getCategories, getIndicator, getLevels, availableYears, resolveSelection, getValueMap, geometryFor } from './dataset.js?v=74';
-import { openTableModal } from './table.js?v=74';
-import { openProfileModal } from './profile.js?v=74';
-import { openSwipe, closeSwipe, isSwipeOpen } from './swipe.js?v=74';
-import { openMetadataModal } from './metadata.js?v=74';
-import { openWelcomeCard } from './welcome.js?v=74';
-import { openFeaturedGallery } from './featured.js?v=74';
-import { openImportPlaces } from './import_places.js?v=74';
+  openSaveMapDialog, openSavedMapsDialog, downloadBlob, stamp } from './toolbar.js?v=75';
+import { ANY, loadDataset, getCategories, getIndicator, getLevels, availableYears, resolveSelection, getValueMap, geometryFor } from './dataset.js?v=75';
+import { openTableModal } from './table.js?v=75';
+import { openProfileModal } from './profile.js?v=75';
+import { openSwipe, closeSwipe, isSwipeOpen } from './swipe.js?v=75';
+import { openMetadataModal } from './metadata.js?v=75';
+import { openWelcomeCard } from './welcome.js?v=75';
+import { openFeaturedGallery } from './featured.js?v=75';
+import { openImportPlaces } from './import_places.js?v=75';
+import { openImportGeojson } from './import_geojson.js?v=75';
 
 // ---- Basemap definitions (all key-free) ----
 export const BASEMAPS = {
@@ -70,6 +71,7 @@ const state = {
   catIdByLabel: {}, // dataset category label -> id
   dynSeq: 0,        // counter for unique dynamic layer ids
   placesSeq: 0,     // counter for unique Places (pin) layer ids
+  importedSeq: 0,   // counter for unique imported (GeoJSON/KML) layer ids
   activeMapId: null, // id of the currently-loaded saved map (from the saved-maps list)
   autosave: true,  // auto-save the active map on changes (on by default; init reads the pref)
   autosaveTimer: null, // debounce handle for autosave
@@ -292,6 +294,17 @@ async function init() {
       catalog.layers.push(makePinsCfg(id, pl.label || 'My Places', features));
       if (state.placesSeq < placesSeqOf(id)) state.placesSeq = placesSeqOf(id);
     }
+    // Recreate imported (GeoJSON/KML) layers from their inline feature collections,
+    // preserving any restyled paint/opacity.
+    for (const im of (saved.imported || [])) {
+      const features = (im.sourceData && im.sourceData.features) || [];
+      const id = im.id || ('imported_' + (state.importedSeq + 1));
+      const cfg = makeImportedCfg(id, im.label || 'Imported data', im.geometry, features, null, im.paint);
+      if (im.opacity != null) cfg.opacity = im.opacity;
+      catalog.layers.push(cfg);
+      const seq = Number((/imported_(\d+)/.exec(id) || [])[1] || 0);
+      if (state.importedSeq < seq) state.importedSeq = seq;
+    }
     applySavedToCatalog(saved);
   }
 
@@ -321,6 +334,7 @@ async function init() {
   window.__saviFeatured = (entry) => applyFeatured(entry);   // debug/test hook
   window.__saviImport = () => openImportPlaces({ createPlacesLayer, sampleHref: 'data/sample_places.csv' });   // debug/test hook
   window.__saviCreatePlaces = (label, points) => createPlacesLayer(label, points);   // debug/test hook
+  window.__saviCreateGeojson = (label, features) => createGeojsonLayer(label, features);   // debug/test hook
   window.__saviExportData = () => exportData(orderedCfgs().filter(l => state.activeLayerIds.has(l.id)));   // debug/test hook
 
   const navCtrl = new maplibregl.NavigationControl({ showCompass: true, showZoom: true, visualizePitch: false });
@@ -496,6 +510,7 @@ async function init() {
     onOpenProfile: () => openProfileModal({ getGeo }),
     onOpenFeatured: () => openFeaturedGallery({ apply: applyFeatured }),
     onImportPlaces: () => openImportPlaces({ createPlacesLayer, sampleHref: 'data/sample_places.csv' }),
+    onImportGeojson: () => openImportGeojson({ createGeojsonLayer }),
     onOpenHelp: () => openWelcomeCard({
       onBrowseFeatured: () => openFeaturedGallery({ apply: applyFeatured }),
       onAddData: () => openAddData()
@@ -758,6 +773,111 @@ async function createPlacesLayer(label, points) {
   try { state.map.fitBounds(bounds, { padding: 60, maxZoom: 14, duration: 900 }); } catch { /* single point / bad bounds */ }
   markDirty();
   return features.length;
+}
+
+// ---- Imported (GeoJSON / KML) layers ----
+// Users import their own GeoJSON or KML as regular layers. Features are grouped by
+// geometry family (points / lines / areas) into one catalog layer each, with the
+// data held inline in cfg.sourceData so it saves/restores with the map.
+const IMPORT_PALETTE = ['#2b8cbe', '#e6550d', '#31a354', '#756bb1', '#d62728', '#17becf'];
+
+// Which of our three render families a GeoJSON geometry type belongs to.
+function geomFamily(type) {
+  if (type === 'Point' || type === 'MultiPoint') return 'point';
+  if (type === 'LineString' || type === 'MultiLineString') return 'line';
+  if (type === 'Polygon' || type === 'MultiPolygon') return 'polygon';
+  return null;
+}
+
+// Build a popup config from the properties present on imported features: pick a
+// title-ish key (name/title/label/id, case-insensitive) and expose the rest as
+// fields (capped so a huge property set doesn't overflow the window).
+function importedPopup(features) {
+  const keys = [];
+  const seen = new Set();
+  (features || []).slice(0, 50).forEach(f => {
+    const props = (f && f.properties) || {};
+    Object.keys(props).forEach(k => { if (!seen.has(k)) { seen.add(k); keys.push(k); } });
+  });
+  const titleKey = keys.find(k => /^(name|title|label|id)$/i.test(k)) || keys[0] || null;
+  const fields = keys.filter(k => k !== titleKey).slice(0, 12).map(k => ({ key: k, label: k }));
+  return { title: titleKey, fields };
+}
+
+// Default style + popup for an imported layer of a given geometry family.
+function makeImportedCfg(id, label, geometry, features, color, paint) {
+  const defaultPaint = geometry === 'point'
+    ? { 'circle-color': color, 'circle-radius': 6, 'circle-stroke-width': 2, 'circle-stroke-color': '#ffffff' }
+    : geometry === 'line'
+      ? { 'line-color': color, 'line-width': 3 }
+      : { 'fill-color': color, 'fill-opacity': 0.4, 'line-color': color, 'line-width': 1.5 };
+  return {
+    id, label,
+    category: 'Imported data',
+    kind: 'imported',
+    geometry,
+    sourceData: { type: 'FeatureCollection', features: features || [] },
+    opacity: 1,
+    paint: paint || defaultPaint,
+    legend: [{ label, color }],
+    popup: importedPopup(features)
+  };
+}
+
+// Extend a LngLatBounds by every coordinate in a GeoJSON geometry (any type).
+function extendBounds(bounds, geom) {
+  if (!geom) return;
+  const walk = (c) => {
+    if (typeof c[0] === 'number') { bounds.extend(c); return; }
+    c.forEach(walk);
+  };
+  if (geom.type === 'GeometryCollection') (geom.geometries || []).forEach(g => extendBounds(bounds, g));
+  else if (geom.coordinates) walk(geom.coordinates);
+}
+
+// All imported (GeoJSON/KML) layers currently on the map.
+function importedLayers() {
+  return state.catalog.layers.filter(l => l.kind === 'imported');
+}
+
+// Create one or more imported layers from a flat array of GeoJSON features (from
+// the GeoJSON/KML importer). Groups by geometry family, adds each layer, binds
+// popups, fits the map to everything, and returns { features, layers } counts.
+async function createGeojsonLayer(label, features) {
+  const groups = { point: [], line: [], polygon: [] };
+  (features || []).forEach(f => {
+    const fam = geomFamily(f && f.geometry && f.geometry.type);
+    if (fam) groups[fam].push(f);
+  });
+  const fams = ['point', 'line', 'polygon'].filter(k => groups[k].length);
+  if (!fams.length) return { features: 0, layers: 0 };
+
+  const base = (label && label.trim()) || 'Imported data';
+  const famLabel = { point: 'points', line: 'lines', polygon: 'areas' };
+  const cfgs = [];
+  fams.forEach((fam) => {
+    const id = 'imported_' + (++state.importedSeq);
+    const lbl = fams.length > 1 ? `${base} (${famLabel[fam]})` : base;
+    const color = IMPORT_PALETTE[(state.importedSeq - 1) % IMPORT_PALETTE.length];
+    const cfg = makeImportedCfg(id, lbl, fam, groups[fam], color);
+    state.catalog.layers.push(cfg);
+    state.layerOrder.unshift(cfg.id);
+    state.activeLayerIds.add(cfg.id);
+    cfgs.push(cfg);
+  });
+
+  for (const cfg of cfgs) await addLayer(state.map, cfg, true);
+  bindPopups(state.map, cfgs);
+  applyLayerOrder(state.map, orderedCfgs());
+  rebuildPanel();
+  refreshLegend();
+
+  const bounds = new maplibregl.LngLatBounds();
+  cfgs.forEach(cfg => cfg.sourceData.features.forEach(f => extendBounds(bounds, f.geometry)));
+  try { state.map.fitBounds(bounds, { padding: 60, maxZoom: 14, duration: 900 }); } catch { /* bad bounds */ }
+  markDirty();
+  const total = fams.reduce((n, k) => n + groups[k].length, 0);
+  return { features: total, layers: cfgs.length };
 }
 
 // Drop a named pin at center. `choice` selects the target Places layer:
@@ -1900,6 +2020,16 @@ function captureMapState() {
         lat: f.geometry.coordinates[1],
         meta: Array.isArray(f.properties.meta) ? f.properties.meta : []
       }))
+    })),
+    // Imported (GeoJSON/KML) layers: the whole feature collection is stored inline,
+    // plus the (possibly restyled) paint/opacity, and rebuilt verbatim on restore.
+    imported: importedLayers().map(l => ({
+      id: l.id,
+      label: l.label,
+      geometry: l.geometry,
+      opacity: l.opacity,
+      paint: l.paint,
+      sourceData: l.sourceData
     })),
     // Transient UI state, so a reopened map is pixel-for-pixel where you left it.
     compare: state.compareSet.slice(),
