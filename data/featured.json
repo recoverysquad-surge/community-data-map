@@ -1,0 +1,124 @@
+{
+  "featured": [
+    {
+      "id": "calls-mental-health",
+      "label": "211 Mental-Health Calls",
+      "description": "Yearly 211 help-line calls where the caller has mental-health issues, by county.",
+      "category": "211 Helpline Calls",
+      "dynamic": [
+        {
+          "indicatorId": "total_211_calls_for_the_year_where_caller_has_mental_health_",
+          "sel": {
+            "level": "Counties",
+            "display": "as % of 211 Calls",
+            "year": "2019"
+          },
+          "ramp": "warm"
+        }
+      ],
+      "view": {
+        "center": [
+          -86.21,
+          39.75
+        ],
+        "zoom": 8.5
+      }
+    },
+    {
+      "id": "calls-substance",
+      "label": "211 Substance-Abuse Calls",
+      "description": "Yearly 211 calls where the caller is dealing with substance abuse or addiction, by county.",
+      "category": "211 Helpline Calls",
+      "dynamic": [
+        {
+          "indicatorId": "total_211_calls_for_the_year_where_caller_is_dealing_with_su",
+          "sel": {
+            "level": "Counties",
+            "display": "as % of 211 Calls",
+            "year": "2019"
+          },
+          "ramp": "warm"
+        }
+      ],
+      "view": {
+        "center": [
+          -86.21,
+          39.75
+        ],
+        "zoom": 8.5
+      }
+    },
+    {
+      "id": "calls-suicide",
+      "label": "211 Suicide / Crisis Calls",
+      "description": "Yearly 211 calls where the caller is dealing with suicide or homicide, by county.",
+      "category": "211 Helpline Calls",
+      "dynamic": [
+        {
+          "indicatorId": "total_211_calls_for_the_year_where_caller_is_dealing_with_su_2",
+          "sel": {
+            "level": "Counties",
+            "display": "as % of 211 Calls",
+            "year": "2019"
+          },
+          "ramp": "warm"
+        }
+      ],
+      "view": {
+        "center": [
+          -86.21,
+          39.75
+        ],
+        "zoom": 8.5
+      }
+    },
+    {
+      "id": "calls-homeless",
+      "label": "211 Homelessness Calls",
+      "description": "Yearly 211 calls where the caller is homeless or doubled up, by county.",
+      "category": "211 Helpline Calls",
+      "dynamic": [
+        {
+          "indicatorId": "total_211_calls_for_the_year_where_caller_is_homeless_or_dou",
+          "sel": {
+            "level": "Counties",
+            "display": "as % of 211 Calls",
+            "year": "2019"
+          },
+          "ramp": "warm"
+        }
+      ],
+      "view": {
+        "center": [
+          -86.21,
+          39.75
+        ],
+        "zoom": 8.5
+      }
+    },
+    {
+      "id": "median-age",
+      "label": "Median Age",
+      "description": "Median age of residents, by county.",
+      "category": "Demographics",
+      "dynamic": [
+        {
+          "indicatorId": "median_age",
+          "sel": {
+            "level": "Counties",
+            "display": "Years",
+            "year": "2024"
+          },
+          "ramp": "blues"
+        }
+      ],
+      "view": {
+        "center": [
+          -86.21,
+          39.75
+        ],
+        "zoom": 8.5
+      }
+    }
+  ]
+}

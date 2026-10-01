@@ -1,0 +1,57 @@
+{
+  "type": "FeatureCollection",
+  "name": "assets_sample",
+  "_note": "PLACEHOLDER point assets over Central Indiana for UI demo only.",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "name": "Central Library", "type": "Library", "address": "40 E St Clair St, Indianapolis" },
+      "geometry": { "type": "Point", "coordinates": [-86.1558, 39.7826] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Nora Branch Library", "type": "Library", "address": "8625 Guilford Ave, Indianapolis" },
+      "geometry": { "type": "Point", "coordinates": [-86.1447, 39.8894] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Noblesville Public Library", "type": "Library", "address": "1 Library Plaza, Noblesville" },
+      "geometry": { "type": "Point", "coordinates": [-86.0086, 40.0456] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Shortridge High School", "type": "School", "address": "3401 N Meridian St, Indianapolis" },
+      "geometry": { "type": "Point", "coordinates": [-86.1568, 39.8215] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Carmel High School", "type": "School", "address": "520 E Main St, Carmel" },
+      "geometry": { "type": "Point", "coordinates": [-86.1080, 39.9784] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Franklin Community High School", "type": "School", "address": "2600 Cumberland Dr, Franklin" },
+      "geometry": { "type": "Point", "coordinates": [-86.0378, 39.4934] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Chase Bank — Monument Circle", "type": "Bank", "address": "1 Monument Cir, Indianapolis" },
+      "geometry": { "type": "Point", "coordinates": [-86.1580, 39.7684] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Fifth Third Bank — Fishers", "type": "Bank", "address": "8500 E 96th St, Fishers" },
+      "geometry": { "type": "Point", "coordinates": [-86.0180, 39.9250] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Huntington Bank — Greenwood", "type": "Bank", "address": "1251 US-31, Greenwood" },
+      "geometry": { "type": "Point", "coordinates": [-86.1120, 39.6137] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Plainfield-Guilford Library", "type": "Library", "address": "1120 Stafford Rd, Plainfield" },
+      "geometry": { "type": "Point", "coordinates": [-86.3720, 39.7010] }
+    }
+  ]
+}

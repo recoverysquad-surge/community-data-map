@@ -1,0 +1,47 @@
+{
+  "type": "FeatureCollection",
+  "name": "tracts_sample",
+  "_note": "PLACEHOLDER census-tract polygons over Marion County area for choropleth UI demo only.",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "tract": "3901.01", "median_income": 34500, "population": 3820, "pct_poverty": 28.4 },
+      "geometry": { "type": "Polygon", "coordinates": [[[-86.20,39.74],[-86.14,39.74],[-86.14,39.80],[-86.20,39.80],[-86.20,39.74]]] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "tract": "3902.02", "median_income": 52200, "population": 4510, "pct_poverty": 15.1 },
+      "geometry": { "type": "Polygon", "coordinates": [[[-86.14,39.74],[-86.08,39.74],[-86.08,39.80],[-86.14,39.80],[-86.14,39.74]]] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "tract": "3903.00", "median_income": 78900, "population": 5120, "pct_poverty": 6.7 },
+      "geometry": { "type": "Polygon", "coordinates": [[[-86.14,39.80],[-86.08,39.80],[-86.08,39.86],[-86.14,39.86],[-86.14,39.80]]] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "tract": "3904.01", "median_income": 96400, "population": 3950, "pct_poverty": 3.2 },
+      "geometry": { "type": "Polygon", "coordinates": [[[-86.20,39.80],[-86.14,39.80],[-86.14,39.86],[-86.20,39.86],[-86.20,39.80]]] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "tract": "3905.02", "median_income": 41800, "population": 4230, "pct_poverty": 22.9 },
+      "geometry": { "type": "Polygon", "coordinates": [[[-86.20,39.68],[-86.14,39.68],[-86.14,39.74],[-86.20,39.74],[-86.20,39.68]]] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "tract": "3906.00", "median_income": 63500, "population": 4870, "pct_poverty": 10.5 },
+      "geometry": { "type": "Polygon", "coordinates": [[[-86.14,39.68],[-86.08,39.68],[-86.08,39.74],[-86.14,39.74],[-86.14,39.68]]] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "tract": "3907.01", "median_income": 118200, "population": 3610, "pct_poverty": 2.1 },
+      "geometry": { "type": "Polygon", "coordinates": [[[-86.08,39.80],[-86.02,39.80],[-86.02,39.86],[-86.08,39.86],[-86.08,39.80]]] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "tract": "3908.00", "median_income": 29800, "population": 3340, "pct_poverty": 34.7 },
+      "geometry": { "type": "Polygon", "coordinates": [[[-86.08,39.74],[-86.02,39.74],[-86.02,39.80],[-86.08,39.80],[-86.08,39.74]]] }
+    }
+  ]
+}

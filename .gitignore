@@ -1,0 +1,16 @@
+# The scraper/harvester is a local data-ingestion toolchain, NOT part of the
+# deployed static site. Keep its heavy artifacts, native libs, and node_modules
+# out of the repo — only the built data under data/ is published.
+scraper/
+
+# Editor / OS noise
+.DS_Store
+*.log
+*.swp
+Thumbs.db
+
+# Scraper/debug screenshots — not part of the deployed app
+artifacts/
+
+# Plan / scratch
+.claude/

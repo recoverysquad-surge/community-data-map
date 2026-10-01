@@ -1,0 +1,378 @@
+{
+  "_note": "Layer CATALOG. To add a real dataset: drop a GeoJSON file under data/ and add an entry here. Order within a category controls panel order.",
+  "map": {
+    "center": [
+      -86.2061,
+      39.7474
+    ],
+    "zoom": 8,
+    "minZoom": 6,
+    "maxZoom": 16
+  },
+  "categories": [
+    {
+      "id": "boundaries",
+      "label": "Boundaries"
+    }
+  ],
+  "layers": [
+    {
+      "id": "counties",
+      "label": "County Boundaries",
+      "category": "boundaries",
+      "source": "data/counties.geojson",
+      "geometry": "polygon",
+      "visible": true,
+      "opacity": 0.85,
+      "paint": {
+        "fill-color": "#c7d8ea",
+        "fill-opacity": 0.35,
+        "line-color": "#1a6ec2",
+        "line-width": 1.5
+      },
+      "labelField": "name",
+      "popup": {
+        "title": "name",
+        "fields": [
+          {
+            "key": "seat",
+            "label": "County Seat"
+          },
+          {
+            "key": "population",
+            "label": "Population",
+            "format": "number"
+          },
+          {
+            "key": "fips",
+            "label": "FIPS"
+          }
+        ]
+      },
+      "legend": [
+        {
+          "type": "polygon",
+          "color": "#c7d8ea",
+          "outline": "#1a6ec2",
+          "label": "County"
+        }
+      ]
+    },
+    {
+      "id": "calls211_mental_health",
+      "label": "Total 211 Calls for the Year where Caller has Mental Health Issues (% of calls)",
+      "category": "calls211",
+      "source": "data/savi_211_counties.geojson",
+      "geometry": "polygon",
+      "visible": true,
+      "opacity": 0.8,
+      "choropleth": {
+        "field": "savi_mental_health",
+        "stops": [
+          {
+            "value": 1.52,
+            "color": "#ffffb2"
+          },
+          {
+            "value": 2.47,
+            "color": "#fecc5c"
+          },
+          {
+            "value": 3.02,
+            "color": "#fd8d3c"
+          },
+          {
+            "value": 3.8,
+            "color": "#f03b20"
+          },
+          {
+            "value": 5.97,
+            "color": "#bd0026"
+          }
+        ]
+      },
+      "paint": {
+        "line-color": "#666",
+        "line-width": 0.75
+      },
+      "popup": {
+        "title": "name",
+        "fields": [
+          {
+            "key": "savi_mental_health_f",
+            "label": "Total 211 Calls for the Year where Caller has Mental Health Issues — 2019"
+          },
+          {
+            "key": "fips",
+            "label": "FIPS"
+          }
+        ]
+      },
+      "legend": [
+        {
+          "type": "polygon",
+          "color": "#ffffb2",
+          "label": "≤ 1.52"
+        },
+        {
+          "type": "polygon",
+          "color": "#fecc5c",
+          "label": "1.52–2.47"
+        },
+        {
+          "type": "polygon",
+          "color": "#fd8d3c",
+          "label": "2.47–3.02"
+        },
+        {
+          "type": "polygon",
+          "color": "#f03b20",
+          "label": "3.02–3.8"
+        },
+        {
+          "type": "polygon",
+          "color": "#bd0026",
+          "label": "3.8–5.97"
+        }
+      ],
+      "_generated": "savi211"
+    },
+    {
+      "id": "calls211_substance",
+      "label": "Total 211 Calls for the Year where Caller is Dealing with Substance Abuse or Other Addiction (% of calls)",
+      "category": "calls211",
+      "source": "data/savi_211_counties.geojson",
+      "geometry": "polygon",
+      "visible": false,
+      "opacity": 0.8,
+      "choropleth": {
+        "field": "savi_substance",
+        "stops": [
+          {
+            "value": 2.55,
+            "color": "#ffffb2"
+          },
+          {
+            "value": 3.17,
+            "color": "#fecc5c"
+          },
+          {
+            "value": 6.25,
+            "color": "#fd8d3c"
+          },
+          {
+            "value": 10.3,
+            "color": "#f03b20"
+          },
+          {
+            "value": 14.7,
+            "color": "#bd0026"
+          }
+        ]
+      },
+      "paint": {
+        "line-color": "#666",
+        "line-width": 0.75
+      },
+      "popup": {
+        "title": "name",
+        "fields": [
+          {
+            "key": "savi_substance_f",
+            "label": "Total 211 Calls for the Year where Caller is Dealing with Substance Abuse or Other Addiction — 2019"
+          },
+          {
+            "key": "fips",
+            "label": "FIPS"
+          }
+        ]
+      },
+      "legend": [
+        {
+          "type": "polygon",
+          "color": "#ffffb2",
+          "label": "≤ 2.55"
+        },
+        {
+          "type": "polygon",
+          "color": "#fecc5c",
+          "label": "2.55–3.17"
+        },
+        {
+          "type": "polygon",
+          "color": "#fd8d3c",
+          "label": "3.17–6.25"
+        },
+        {
+          "type": "polygon",
+          "color": "#f03b20",
+          "label": "6.25–10.3"
+        },
+        {
+          "type": "polygon",
+          "color": "#bd0026",
+          "label": "10.3–14.7"
+        }
+      ],
+      "_generated": "savi211"
+    },
+    {
+      "id": "calls211_suicide",
+      "label": "Total 211 Calls for the Year where Caller is Dealing with Suicide or Homicide (% of calls)",
+      "category": "calls211",
+      "source": "data/savi_211_counties.geojson",
+      "geometry": "polygon",
+      "visible": false,
+      "opacity": 0.8,
+      "choropleth": {
+        "field": "savi_suicide",
+        "stops": [
+          {
+            "value": 0.248,
+            "color": "#ffffb2"
+          },
+          {
+            "value": 1.09,
+            "color": "#fecc5c"
+          },
+          {
+            "value": 1.25,
+            "color": "#fd8d3c"
+          },
+          {
+            "value": 1.33,
+            "color": "#f03b20"
+          },
+          {
+            "value": 2.59,
+            "color": "#bd0026"
+          }
+        ]
+      },
+      "paint": {
+        "line-color": "#666",
+        "line-width": 0.75
+      },
+      "popup": {
+        "title": "name",
+        "fields": [
+          {
+            "key": "savi_suicide_f",
+            "label": "Total 211 Calls for the Year where Caller is Dealing with Suicide or Homicide — 2019"
+          },
+          {
+            "key": "fips",
+            "label": "FIPS"
+          }
+        ]
+      },
+      "legend": [
+        {
+          "type": "polygon",
+          "color": "#ffffb2",
+          "label": "≤ 0.25"
+        },
+        {
+          "type": "polygon",
+          "color": "#fecc5c",
+          "label": "0.25–1.09"
+        },
+        {
+          "type": "polygon",
+          "color": "#fd8d3c",
+          "label": "1.09–1.25"
+        },
+        {
+          "type": "polygon",
+          "color": "#f03b20",
+          "label": "1.25–1.33"
+        },
+        {
+          "type": "polygon",
+          "color": "#bd0026",
+          "label": "1.33–2.59"
+        }
+      ],
+      "_generated": "savi211"
+    },
+    {
+      "id": "calls211_homeless",
+      "label": "Total 211 Calls for the Year where Caller is Homeless or Doubled up. (% of calls)",
+      "category": "calls211",
+      "source": "data/savi_211_counties.geojson",
+      "geometry": "polygon",
+      "visible": false,
+      "opacity": 0.8,
+      "choropleth": {
+        "field": "savi_homeless",
+        "stops": [
+          {
+            "value": 4.43,
+            "color": "#ffffb2"
+          },
+          {
+            "value": 6.42,
+            "color": "#fecc5c"
+          },
+          {
+            "value": 7.24,
+            "color": "#fd8d3c"
+          },
+          {
+            "value": 8.44,
+            "color": "#f03b20"
+          },
+          {
+            "value": 9.46,
+            "color": "#bd0026"
+          }
+        ]
+      },
+      "paint": {
+        "line-color": "#666",
+        "line-width": 0.75
+      },
+      "popup": {
+        "title": "name",
+        "fields": [
+          {
+            "key": "savi_homeless_f",
+            "label": "Total 211 Calls for the Year where Caller is Homeless or Doubled up. — 2019"
+          },
+          {
+            "key": "fips",
+            "label": "FIPS"
+          }
+        ]
+      },
+      "legend": [
+        {
+          "type": "polygon",
+          "color": "#ffffb2",
+          "label": "≤ 4.43"
+        },
+        {
+          "type": "polygon",
+          "color": "#fecc5c",
+          "label": "4.43–6.42"
+        },
+        {
+          "type": "polygon",
+          "color": "#fd8d3c",
+          "label": "6.42–7.24"
+        },
+        {
+          "type": "polygon",
+          "color": "#f03b20",
+          "label": "7.24–8.44"
+        },
+        {
+          "type": "polygon",
+          "color": "#bd0026",
+          "label": "8.44–9.46"
+        }
+      ],
+      "_generated": "savi211"
+    }
+  ]
+}

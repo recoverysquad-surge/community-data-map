@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Never cache the HTML itself so browsers always pick up the latest ?v CSS/JS. -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>Community Data Map</title>
+  <!-- Inline gold-on-black "C" mark so no external SAVI icon is referenced. -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23111111'/%3E%3Ctext x='32' y='45' font-family='Georgia,serif' font-size='40' font-weight='700' text-anchor='middle' fill='%23d4af37'%3EC%3C/text%3E%3C/svg%3E" />
+
+  <!-- MapLibre GL JS via CDN -->
+  <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
+  <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+
+  <link href="css/styles.css?v=63" rel="stylesheet" />
+</head>
+<body>
+  <div id="app">
+    <!-- Top toolbar — panel toggles, save-to-device, export. Populated by js/toolbar.js -->
+    <div id="toolbar" role="toolbar" aria-label="Map tools"></div>
+
+    <main id="map" aria-label="Interactive map"></main>
+
+    <!-- Left dock — Basemap + Layers start here; each can be dragged out. -->
+    <div id="dock">
+
+    <!-- Floating panel: Basemap -->
+    <section class="float-panel float-basemap" id="panel-basemap" role="region" aria-label="Basemap">
+      <header class="float-panel-header">
+        <span class="float-panel-title">Basemap</span>
+        <button class="collapse-btn" type="button" aria-label="Collapse panel">–</button>
+      </header>
+      <div class="float-panel-body">
+        <div id="basemap-switcher" class="basemap-switcher"></div>
+      </div>
+    </section>
+
+    <!-- Floating panel: Layers -->
+    <section class="float-panel float-layers" id="panel-layers" role="region" aria-label="Layers">
+      <header class="float-panel-header">
+        <span class="float-panel-title">Layers</span>
+        <span class="float-panel-hint">drag to reorder · top = on top</span>
+        <button id="add-data-btn" class="add-data-btn" type="button" title="Add a data layer to the map" aria-label="Add data layer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6 2 9 8 12 14 9 8 6Z"/><path d="M2 15 8 18 14 15"/><path d="M18.5 7V13M15.5 10H21.5"/></svg></button>
+        <button class="collapse-btn" type="button" aria-label="Collapse panel">–</button>
+      </header>
+      <div class="float-panel-body">
+        <div id="layer-panel" class="layer-panel"></div>
+      </div>
+    </section>
+
+    </div><!-- /#dock -->
+
+    <!-- Right dock — Legend starts here, aligned right; can be dragged out. -->
+    <div id="dock-right">
+
+    <!-- Floating panel: Legend -->
+    <section class="float-panel float-legend" id="panel-legend" role="region" aria-label="Legend">
+      <header class="float-panel-header">
+        <span class="float-panel-title">Legend</span>
+        <button class="collapse-btn" type="button" aria-label="Collapse panel">–</button>
+      </header>
+      <div class="float-panel-body">
+        <div id="legend" class="legend"></div>
+      </div>
+    </section>
+
+    </div><!-- /#dock-right -->
+
+    <!-- Floating panel: Timeline (multi-year scrubber). Hidden until enabled/relevant. -->
+    <section class="float-panel float-timeline hidden" id="panel-timeline" role="region" aria-label="Timeline">
+      <header class="float-panel-header">
+        <span class="float-panel-title">Timeline</span>
+        <button class="collapse-btn" type="button" aria-label="Collapse panel">–</button>
+      </header>
+      <div class="float-panel-body">
+        <div id="timeline-body"></div>
+      </div>
+    </section>
+  </div>
+
+  <script type="module" src="js/app.js?v=63"></script>
+</body>
+</html>
