@@ -1,9 +1,9 @@
 // SAVI — UI builders: flat draggable layer list, legend, basemap switcher.
 
-import { accentColor, RAMPS } from './layers.js?v=66';
+import { accentColor, RAMPS } from './layers.js?v=67';
 import { ANY, availableLevels, availableDisplays, availableYears,
-  searchIndicators } from './dataset.js?v=66';
-import { makeDraggable } from './panels.js?v=66';
+  searchIndicators } from './dataset.js?v=67';
+import { makeDraggable } from './panels.js?v=67';
 
 // Normalize any hex color to #rrggbb (input[type=color] requires the 6-digit form).
 function toHex(c) {
@@ -1066,13 +1066,13 @@ export function buildLegend(activeLayersOrdered, opts = {}) {
         row.tabIndex = 0;
         row.setAttribute('aria-pressed', String(active));
         if (active) row.classList.add('active');
-        row.title = 'Click to highlight \u00b7 Ctrl/\u2318-click to select multiple breaks';
-        row.setAttribute('aria-label', `Highlight ${layer.label}: ${entry.label}`);
-        // Ctrl/Cmd-click adds or removes this break from a multi-break selection.
-        const fire = (additive) => opts.onLegendClass(layer, index, additive);
-        row.addEventListener('click', (e) => fire(e.ctrlKey || e.metaKey));
+        row.title = 'Click to show or hide this range on the map \u00b7 click multiple to combine';
+        row.setAttribute('aria-label', `Toggle ${layer.label}: ${entry.label}`);
+        // Each click toggles this break on/off; combine several by clicking more.
+        const fire = () => opts.onLegendClass(layer, index);
+        row.addEventListener('click', fire);
         row.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fire(e.ctrlKey || e.metaKey); }
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fire(); }
         });
       }
       block.appendChild(row);

@@ -1,21 +1,21 @@
 // SAVI Single-Map Interface — app entry point.
 // Initializes MapLibre, loads the layer catalog, and wires up UI.
 
-import { addLayer, updateLayerVisibility, updateLayerOpacity, bindPopups, reAddAllLayers, applyLayerOrder, setLayerColor, setLayerPattern, setLayerPatternOpacity, setLayerRamp, reclassify, removeLayer, applyIndicatorSelection, RAMPS } from './layers.js?v=66';
-import { buildLayerPanel, buildLegend, buildBasemapSwitcher, openCatalogModal } from './ui.js?v=66';
-import { makeDraggable, makeCollapsible, makeResizable, resetPanelLayout } from './panels.js?v=66';
+import { addLayer, updateLayerVisibility, updateLayerOpacity, bindPopups, reAddAllLayers, applyLayerOrder, setLayerColor, setLayerPattern, setLayerPatternOpacity, setLayerRamp, reclassify, removeLayer, applyIndicatorSelection, RAMPS } from './layers.js?v=67';
+import { buildLayerPanel, buildLegend, buildBasemapSwitcher, openCatalogModal } from './ui.js?v=67';
+import { makeDraggable, makeCollapsible, makeResizable, resetPanelLayout } from './panels.js?v=67';
 import { buildToolbar, showToast, exportImage, exportPdf, exportData, exportLayer, setSaveDirty,
   listSavedMaps, getSavedMap, saveNamedMap, deleteSavedMap,
   getActiveMapId, setActiveMapId, clearActiveMapId, withLoading,
-  openSaveMapDialog, openSavedMapsDialog, downloadBlob, stamp } from './toolbar.js?v=66';
-import { ANY, loadDataset, getCategories, getIndicator, getLevels, availableYears, resolveSelection, getValueMap, geometryFor } from './dataset.js?v=66';
-import { openTableModal } from './table.js?v=66';
-import { openProfileModal } from './profile.js?v=66';
-import { openSwipe, closeSwipe, isSwipeOpen } from './swipe.js?v=66';
-import { openMetadataModal } from './metadata.js?v=66';
-import { openWelcomeCard } from './welcome.js?v=66';
-import { openFeaturedGallery } from './featured.js?v=66';
-import { openImportPlaces } from './import_places.js?v=66';
+  openSaveMapDialog, openSavedMapsDialog, downloadBlob, stamp } from './toolbar.js?v=67';
+import { ANY, loadDataset, getCategories, getIndicator, getLevels, availableYears, resolveSelection, getValueMap, geometryFor } from './dataset.js?v=67';
+import { openTableModal } from './table.js?v=67';
+import { openProfileModal } from './profile.js?v=67';
+import { openSwipe, closeSwipe, isSwipeOpen } from './swipe.js?v=67';
+import { openMetadataModal } from './metadata.js?v=67';
+import { openWelcomeCard } from './welcome.js?v=67';
+import { openFeaturedGallery } from './featured.js?v=67';
+import { openImportPlaces } from './import_places.js?v=67';
 
 // ---- Basemap definitions (all key-free) ----
 export const BASEMAPS = {
@@ -2103,22 +2103,19 @@ function resetLegendClass(layer) {
 }
 
 // Emphasize the features of one or more choropleth breaks by dimming the rest.
-// Plain click = single break (click it again to clear). Ctrl/Cmd-click = add/remove
-// that break from a multi-break selection. Reversible (restores normal opacity).
-function toggleLegendClass(layer, index, additive) {
+// Each click toggles a break on/off independently (like a checkbox): click an
+// unselected break to add it, click a selected one to remove it. Selecting a break
+// on a different layer starts a fresh selection. Reversible (restores normal opacity).
+function toggleLegendClass(layer, index /* additive: no longer required */) {
   const cur = state.legendHighlight;
   const sameLayer = cur && cur.layerId === layer.id;
   let indices;
-  if (additive && sameLayer) {
+  if (sameLayer) {
     const set = new Set(cur.indices);
     if (set.has(index)) set.delete(index); else set.add(index);
     indices = [...set];
-  } else if (additive) {
-    indices = [index];  // Ctrl-click with no/other selection starts a fresh set.
   } else {
-    // Plain click toggles off only if this break is the sole current selection.
-    const only = sameLayer && cur.indices.length === 1 && cur.indices[0] === index;
-    indices = only ? [] : [index];
+    indices = [index];  // first break for this layer
   }
   clearLegendHighlight();
   if (indices.length) applyLegendHighlight(layer, indices);
