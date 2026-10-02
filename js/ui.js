@@ -1,9 +1,9 @@
 // SAVI — UI builders: flat draggable layer list, legend, basemap switcher.
 
-import { accentColor, RAMPS } from './layers.js?v=78';
+import { accentColor, RAMPS } from './layers.js?v=79';
 import { ANY, availableLevels, availableDisplays, availableYears,
-  searchIndicators } from './dataset.js?v=78';
-import { makeDraggable } from './panels.js?v=78';
+  searchIndicators } from './dataset.js?v=79';
+import { makeDraggable } from './panels.js?v=79';
 
 // Normalize any hex color to #rrggbb (input[type=color] requires the 6-digit form).
 function toHex(c) {
@@ -797,7 +797,10 @@ function pathSegs(ind) {
 
 // Flat search results (search box has text): one list, each row shows its full path.
 function renderSearch(body, query, handlers) {
-  const matches = searchIndicators(query);
+  const q = String(query || '').toLowerCase();
+  const extra = (handlers.extraItems || []).filter(it =>
+    it.label.toLowerCase().includes(q) || String(it.path || '').toLowerCase().includes(q));
+  const matches = extra.concat(searchIndicators(query));
   if (!matches.length) {
     body.innerHTML = '<p class="catalog-empty">No indicators match your search.</p>';
     return;
@@ -847,7 +850,7 @@ function renderBrowse(body, overlay, render, handlers) {
   // indicators that terminate exactly here.
   const folders = new Map();   // folder name -> count of indicators beneath it
   const items = [];
-  for (const ind of searchIndicators('')) {
+  for (const ind of (handlers.extraItems || []).concat(searchIndicators(''))) {
     const segs = pathSegs(ind);
     if (segs.length < nav.length) continue;
     let under = true;

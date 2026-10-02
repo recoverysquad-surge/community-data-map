@@ -1,22 +1,22 @@
 // SAVI Single-Map Interface — app entry point.
 // Initializes MapLibre, loads the layer catalog, and wires up UI.
 
-import { addLayer, updateLayerVisibility, updateLayerOpacity, bindPopups, reAddAllLayers, applyLayerOrder, setLayerColor, setLayerPattern, setLayerPatternOpacity, setLayerRamp, reclassify, removeLayer, applyIndicatorSelection, RAMPS } from './layers.js?v=78';
-import { buildLayerPanel, buildLegend, buildBasemapSwitcher, openCatalogModal } from './ui.js?v=78';
-import { makeDraggable, makeCollapsible, makeResizable, resetPanelLayout } from './panels.js?v=78';
+import { addLayer, updateLayerVisibility, updateLayerOpacity, bindPopups, reAddAllLayers, applyLayerOrder, setLayerColor, setLayerPattern, setLayerPatternOpacity, setLayerRamp, reclassify, removeLayer, applyIndicatorSelection, RAMPS } from './layers.js?v=79';
+import { buildLayerPanel, buildLegend, buildBasemapSwitcher, openCatalogModal } from './ui.js?v=79';
+import { makeDraggable, makeCollapsible, makeResizable, resetPanelLayout } from './panels.js?v=79';
 import { buildToolbar, showToast, exportImage, exportPdf, exportData, exportLayer, setSaveDirty,
   listSavedMaps, getSavedMap, saveNamedMap, deleteSavedMap,
   getActiveMapId, setActiveMapId, clearActiveMapId, withLoading,
-  openSaveMapDialog, openSavedMapsDialog, downloadBlob, stamp } from './toolbar.js?v=78';
-import { ANY, loadDataset, getCategories, getIndicator, getLevels, availableYears, resolveSelection, getValueMap, geometryFor } from './dataset.js?v=78';
-import { openTableModal } from './table.js?v=78';
-import { openProfileModal } from './profile.js?v=78';
-import { openSwipe, closeSwipe, isSwipeOpen } from './swipe.js?v=78';
-import { openMetadataModal } from './metadata.js?v=78';
-import { openWelcomeCard } from './welcome.js?v=78';
-import { openFeaturedGallery } from './featured.js?v=78';
-import { openImportPlaces } from './import_places.js?v=78';
-import { openImportGeojson } from './import_geojson.js?v=78';
+  openSaveMapDialog, openSavedMapsDialog, downloadBlob, stamp } from './toolbar.js?v=79';
+import { ANY, loadDataset, getCategories, getIndicator, getLevels, availableYears, resolveSelection, getValueMap, geometryFor } from './dataset.js?v=79';
+import { openTableModal } from './table.js?v=79';
+import { openProfileModal } from './profile.js?v=79';
+import { openSwipe, closeSwipe, isSwipeOpen } from './swipe.js?v=79';
+import { openMetadataModal } from './metadata.js?v=79';
+import { openWelcomeCard } from './welcome.js?v=79';
+import { openFeaturedGallery } from './featured.js?v=79';
+import { openImportPlaces } from './import_places.js?v=79';
+import { openImportGeojson } from './import_geojson.js?v=79';
 
 // ---- Basemap definitions (all key-free) ----
 export const BASEMAPS = {
@@ -293,6 +293,16 @@ async function init() {
       const id = pl.id || ('places_' + (state.placesSeq + 1));
       catalog.layers.push(makePinsCfg(id, pl.label || 'My Places', features));
       if (state.placesSeq < placesSeqOf(id)) state.placesSeq = placesSeqOf(id);
+    }
+    // Recreate dynamic boundary overlays (not the static 'counties' layer, which is
+    // restored through the normal static-catalog path).
+    for (const b of (saved.boundaries || [])) {
+      const t = boundaryType(b.key);
+      if (!t || t.staticId) continue;
+      const cfg = createBoundaryCfg(t);
+      if (b.opacity != null) cfg.opacity = b.opacity;
+      if (b.paint) cfg.paint = b.paint;
+      catalog.layers.push(cfg);
     }
     // Recreate imported (GeoJSON/KML) layers from their inline feature collections,
     // preserving any restyled paint/opacity.
@@ -1875,12 +1885,102 @@ function removeIndicatorLayer(indicatorId) {
   if (cfg) deleteLayer(cfg.id);
 }
 
+// ---- Boundary overlays (the 7 SAVI geography levels) ----
+// Outline-only polygon layers from the prefetched boundary geojsons, offered under
+// a "Boundaries" category in Add Data. Counties is also the default on-map boundary
+// (the static 'counties' catalog layer), so its entry just toggles that layer.
+const BOUNDARY_TYPES = [
+  { key: 'counties',    label: 'Counties',                       source: 'data/geo_counties.geojson',    staticId: 'counties', color: '#1a6ec2' },
+  { key: 'tracts',      label: '2010 Census Tracts',             source: 'data/geo_tracts.geojson',      color: '#8338ec' },
+  { key: 'blockgroups', label: '2010 Block Groups',              source: 'data/geo_blockgroups.geojson', color: '#3a86ff' },
+  { key: 'townships',   label: 'Townships',                      source: 'data/geo_townships.geojson',   color: '#fb5607' },
+  { key: 'schools',     label: 'School Corporations',            source: 'data/geo_schools.geojson',     color: '#2a9d8f' },
+  { key: 'zcta',        label: 'ZIP Code Tabulation Areas 2010', source: 'data/geo_zcta.geojson',        color: '#e76f51' },
+  { key: 'msa',         label: 'Metropolitan Statistical Area',  source: 'data/geo_msa.geojson',         color: '#6a4c93' }
+];
+function boundaryType(key) { return BOUNDARY_TYPES.find(t => t.key === key); }
+
+// Build an outline-only boundary layer config (very light fill so clicks register
+// for the name popup, strong colored outline).
+function createBoundaryCfg(t) {
+  return {
+    id: 'bnd_' + t.key,
+    kind: 'boundary',
+    boundaryKey: t.key,
+    label: t.label + ' boundaries',
+    category: 'boundaries',
+    geometry: 'polygon',
+    source: t.source,
+    visible: true,
+    opacity: 1,
+    paint: { 'fill-color': t.color, 'fill-opacity': 0.04, 'line-color': t.color, 'line-width': 1.2 },
+    labelField: 'name',
+    popup: { title: 'name', fields: [] },
+    legend: [{ type: 'polygon', color: t.color, outline: t.color, label: t.label }]
+  };
+}
+
+function isBoundaryAdded(key) {
+  const t = boundaryType(key);
+  if (!t) return false;
+  if (t.staticId) return state.activeLayerIds.has(t.staticId);   // counties: on map == visible
+  return state.catalog.layers.some(l => l.id === 'bnd_' + key);
+}
+
+async function addBoundaryLayer(key) {
+  const t = boundaryType(key);
+  if (!t) return;
+  // Counties: just (re)activate the existing static catalog layer.
+  if (t.staticId) {
+    const cfg = findLayer(t.staticId);
+    if (!cfg) return;
+    state.activeLayerIds.add(cfg.id);
+    if (!state.layerOrder.includes(cfg.id)) state.layerOrder.unshift(cfg.id);
+    await addLayer(state.map, cfg, true);
+    bindPopups(state.map, [cfg]);
+    applyLayerOrder(state.map, orderedCfgs());
+    rebuildPanel(); refreshLegend(); markDirty();
+    return;
+  }
+  await withLoading('Adding boundaries\u2026', async () => {
+    const cfg = createBoundaryCfg(t);
+    state.catalog.layers.push(cfg);
+    state.layerOrder.unshift(cfg.id);      // new overlays start on top
+    state.activeLayerIds.add(cfg.id);
+    await addLayer(state.map, cfg, true);
+    bindPopups(state.map, [cfg]);
+    applyLayerOrder(state.map, orderedCfgs());
+    rebuildPanel(); refreshLegend(); markDirty();
+    showToast('Added: ' + t.label + ' boundaries');
+  });
+}
+
+function removeBoundaryLayer(key) {
+  const t = boundaryType(key);
+  if (!t) return;
+  // Counties: deactivate the static layer but keep it in the panel.
+  if (t.staticId) {
+    const cfg = findLayer(t.staticId);
+    if (!cfg) return;
+    state.activeLayerIds.delete(cfg.id);
+    updateLayerVisibility(state.map, cfg, false);
+    rebuildPanel(); refreshLegend(); markDirty();
+    return;
+  }
+  deleteLayer('bnd_' + key);
+}
+
 // Open the Add Data catalog with add/remove toggle + already-selected state.
+// A "Boundaries" category (the 7 SAVI geographies) is injected via extraItems;
+// its ids are prefixed "bnd:" so the handlers route to the boundary machinery.
 function openAddData() {
+  const boundaryItems = BOUNDARY_TYPES.map(t => ({ id: 'bnd:' + t.key, label: t.label, path: 'Boundaries' }));
+  const isBnd = id => typeof id === 'string' && id.startsWith('bnd:');
   openCatalogModal({
-    onAdd: addIndicatorLayer,
-    onRemove: removeIndicatorLayer,
-    isAdded: isIndicatorAdded
+    extraItems: boundaryItems,
+    onAdd: id => (isBnd(id) ? addBoundaryLayer(id.slice(4)) : addIndicatorLayer(id)),
+    onRemove: id => (isBnd(id) ? removeBoundaryLayer(id.slice(4)) : removeIndicatorLayer(id)),
+    isAdded: id => (isBnd(id) ? isBoundaryAdded(id.slice(4)) : isIndicatorAdded(id))
   });
 }
 
@@ -2021,6 +2121,10 @@ function captureMapState() {
         meta: Array.isArray(f.properties.meta) ? f.properties.meta : []
       }))
     })),
+    // Boundary overlays: recreated from the boundary key (geometry fetched on restore).
+    boundaries: state.catalog.layers
+      .filter(l => l.kind === 'boundary')
+      .map(l => ({ key: l.boundaryKey, opacity: l.opacity, paint: l.paint })),
     // Imported (GeoJSON/KML) layers: the whole feature collection is stored inline,
     // plus the (possibly restyled) paint/opacity, and rebuilt verbatim on restore.
     imported: importedLayers().map(l => ({
