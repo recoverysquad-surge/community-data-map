@@ -1,22 +1,22 @@
 // SAVI Single-Map Interface — app entry point.
 // Initializes MapLibre, loads the layer catalog, and wires up UI.
 
-import { addLayer, updateLayerVisibility, updateLayerOpacity, bindPopups, reAddAllLayers, applyLayerOrder, setLayerColor, setLayerPattern, setLayerPatternOpacity, setLayerRamp, reclassify, removeLayer, applyIndicatorSelection, RAMPS } from './layers.js?v=80';
-import { buildLayerPanel, buildLegend, buildBasemapSwitcher, openCatalogModal } from './ui.js?v=80';
-import { makeDraggable, makeCollapsible, makeResizable, resetPanelLayout } from './panels.js?v=80';
+import { addLayer, updateLayerVisibility, updateLayerOpacity, bindPopups, reAddAllLayers, applyLayerOrder, setLayerColor, setLayerPattern, setLayerPatternOpacity, setLayerRamp, reclassify, removeLayer, applyIndicatorSelection, RAMPS } from './layers.js?v=81';
+import { buildLayerPanel, buildLegend, buildBasemapSwitcher, openCatalogModal } from './ui.js?v=81';
+import { makeDraggable, makeCollapsible, makeResizable, resetPanelLayout } from './panels.js?v=81';
 import { buildToolbar, showToast, exportImage, exportPdf, exportData, exportLayer, setSaveDirty,
   listSavedMaps, getSavedMap, saveNamedMap, deleteSavedMap,
   getActiveMapId, setActiveMapId, clearActiveMapId, withLoading,
-  openSaveMapDialog, openSavedMapsDialog, downloadBlob, stamp } from './toolbar.js?v=80';
-import { ANY, loadDataset, getCategories, getIndicator, getLevels, availableYears, resolveSelection, getValueMap, geometryFor } from './dataset.js?v=80';
-import { openTableModal } from './table.js?v=80';
-import { openProfileModal } from './profile.js?v=80';
-import { openSwipe, closeSwipe, isSwipeOpen } from './swipe.js?v=80';
-import { openMetadataModal } from './metadata.js?v=80';
-import { openWelcomeCard } from './welcome.js?v=80';
-import { openFeaturedGallery } from './featured.js?v=80';
-import { openImportPlaces } from './import_places.js?v=80';
-import { openImportGeojson } from './import_geojson.js?v=80';
+  openSaveMapDialog, openSavedMapsDialog, downloadBlob, stamp } from './toolbar.js?v=81';
+import { ANY, loadDataset, getCategories, getIndicator, getLevels, availableYears, resolveSelection, getValueMap, geometryFor } from './dataset.js?v=81';
+import { openTableModal } from './table.js?v=81';
+import { openProfileModal } from './profile.js?v=81';
+import { openSwipe, closeSwipe, isSwipeOpen } from './swipe.js?v=81';
+import { openMetadataModal } from './metadata.js?v=81';
+import { openWelcomeCard } from './welcome.js?v=81';
+import { openFeaturedGallery } from './featured.js?v=81';
+import { openImportPlaces } from './import_places.js?v=81';
+import { openImportGeojson } from './import_geojson.js?v=81';
 
 // ---- Basemap definitions (all key-free) ----
 export const BASEMAPS = {
@@ -1907,6 +1907,9 @@ async function activateStaticLayer(id) {
   state.activeLayerIds.add(cfg.id);
   if (!state.layerOrder.includes(cfg.id)) state.layerOrder.unshift(cfg.id);
   await addLayer(state.map, cfg, true);
+  // The layer may already exist from init (static layers load hidden, visible:false),
+  // in which case addLayer is a no-op — so force it visible here either way.
+  updateLayerVisibility(state.map, cfg, true);
   bindPopups(state.map, [cfg]);
   applyLayerOrder(state.map, orderedCfgs());
   rebuildPanel(); refreshLegend(); markDirty();
