@@ -1,9 +1,9 @@
 // SAVI — UI builders: flat draggable layer list, legend, basemap switcher.
 
-import { accentColor, RAMPS } from './layers.js?v=81';
+import { accentColor, RAMPS } from './layers.js?v=82';
 import { ANY, availableLevels, availableDisplays, availableYears,
-  searchIndicators } from './dataset.js?v=81';
-import { makeDraggable } from './panels.js?v=81';
+  searchIndicators } from './dataset.js?v=82';
+import { makeDraggable } from './panels.js?v=82';
 
 // Normalize any hex color to #rrggbb (input[type=color] requires the 6-digit form).
 function toHex(c) {
@@ -1054,7 +1054,12 @@ export function buildLegend(activeLayersOrdered, opts = {}) {
       block.appendChild(caption);
     }
 
-    layer.legend.forEach((entry, index) => {
+    // A single-entry simple layer (points, boundaries) is fully described by its
+    // title (colored chip + name) above — a lone entry row just repeats it. Skip
+    // the rows in that case. Choropleth (clickable, multi-bucket) legends keep them.
+    const skipEntries = layer.legend.length === 1 && !clickable;
+
+    if (!skipEntries) layer.legend.forEach((entry, index) => {
       const row = document.createElement('div');
       row.className = 'legend-entry';
       row.appendChild(legendEntrySwatch(entry, layer));
