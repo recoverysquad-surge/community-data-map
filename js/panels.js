@@ -143,6 +143,17 @@ export function makeCollapsible(panelEl, btnEl, onChange) {
     btnEl.setAttribute('aria-label', collapsed ? 'Expand panel' : 'Collapse panel');
   };
   btnEl.addEventListener('click', () => {
+    const willCollapse = !panelEl.classList.contains('collapsed');
+    if (willCollapse) {
+      // A resized panel carries an explicit inline height; collapsing hides the
+      // body but the height would remain, leaving a tall empty (white) box. Stash
+      // the custom height and drop it so the collapsed panel shrinks to its header.
+      if (panelEl.style.height) panelEl.dataset.savedHeight = panelEl.style.height;
+      panelEl.style.height = '';
+    } else if (panelEl.dataset.savedHeight) {
+      panelEl.style.height = panelEl.dataset.savedHeight;   // restore resized height on expand
+      delete panelEl.dataset.savedHeight;
+    }
     panelEl.classList.toggle('collapsed');
     sync();
     if (typeof onChange === 'function') onChange();

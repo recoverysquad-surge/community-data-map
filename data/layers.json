@@ -13,6 +13,10 @@
     {
       "id": "boundaries",
       "label": "Boundaries"
+    },
+    {
+      "id": "sites",
+      "label": "Sites, Programs & Agencies"
     }
   ],
   "layers": [
@@ -373,6 +377,50 @@
         }
       ],
       "_generated": "savi211"
+    },
+    {
+      "id": "sites_arts_culture_and_recreation",
+      "label": "Arts, Culture and Recreation (475)",
+      "category": "sites",
+      "source": "data/savi_sites_arts_culture_and_recreation.geojson",
+      "geometry": "point",
+      "visible": false,
+      "opacity": 0.9,
+      "paint": {
+        "circle-color": "#e6194B",
+        "circle-radius": 4,
+        "circle-stroke-width": 1,
+        "circle-stroke-color": "#ffffff"
+      },
+      "popup": {
+        "title": "name",
+        "fields": [
+          {
+            "key": "assetType",
+            "label": "Type"
+          },
+          {
+            "key": "subcategory",
+            "label": "Category"
+          },
+          {
+            "key": "dataYear",
+            "label": "Data Year"
+          },
+          {
+            "key": "assetId",
+            "label": "Asset ID"
+          }
+        ]
+      },
+      "legend": [
+        {
+          "type": "circle",
+          "color": "#e6194B",
+          "label": "Arts, Culture and Recreation"
+        }
+      ],
+      "_generated": "savisites"
     }
   ]
 }

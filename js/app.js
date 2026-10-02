@@ -1,22 +1,22 @@
 // SAVI Single-Map Interface — app entry point.
 // Initializes MapLibre, loads the layer catalog, and wires up UI.
 
-import { addLayer, updateLayerVisibility, updateLayerOpacity, bindPopups, reAddAllLayers, applyLayerOrder, setLayerColor, setLayerPattern, setLayerPatternOpacity, setLayerRamp, reclassify, removeLayer, applyIndicatorSelection, RAMPS } from './layers.js?v=79';
-import { buildLayerPanel, buildLegend, buildBasemapSwitcher, openCatalogModal } from './ui.js?v=79';
-import { makeDraggable, makeCollapsible, makeResizable, resetPanelLayout } from './panels.js?v=79';
+import { addLayer, updateLayerVisibility, updateLayerOpacity, bindPopups, reAddAllLayers, applyLayerOrder, setLayerColor, setLayerPattern, setLayerPatternOpacity, setLayerRamp, reclassify, removeLayer, applyIndicatorSelection, RAMPS } from './layers.js?v=80';
+import { buildLayerPanel, buildLegend, buildBasemapSwitcher, openCatalogModal } from './ui.js?v=80';
+import { makeDraggable, makeCollapsible, makeResizable, resetPanelLayout } from './panels.js?v=80';
 import { buildToolbar, showToast, exportImage, exportPdf, exportData, exportLayer, setSaveDirty,
   listSavedMaps, getSavedMap, saveNamedMap, deleteSavedMap,
   getActiveMapId, setActiveMapId, clearActiveMapId, withLoading,
-  openSaveMapDialog, openSavedMapsDialog, downloadBlob, stamp } from './toolbar.js?v=79';
-import { ANY, loadDataset, getCategories, getIndicator, getLevels, availableYears, resolveSelection, getValueMap, geometryFor } from './dataset.js?v=79';
-import { openTableModal } from './table.js?v=79';
-import { openProfileModal } from './profile.js?v=79';
-import { openSwipe, closeSwipe, isSwipeOpen } from './swipe.js?v=79';
-import { openMetadataModal } from './metadata.js?v=79';
-import { openWelcomeCard } from './welcome.js?v=79';
-import { openFeaturedGallery } from './featured.js?v=79';
-import { openImportPlaces } from './import_places.js?v=79';
-import { openImportGeojson } from './import_geojson.js?v=79';
+  openSaveMapDialog, openSavedMapsDialog, downloadBlob, stamp } from './toolbar.js?v=80';
+import { ANY, loadDataset, getCategories, getIndicator, getLevels, availableYears, resolveSelection, getValueMap, geometryFor } from './dataset.js?v=80';
+import { openTableModal } from './table.js?v=80';
+import { openProfileModal } from './profile.js?v=80';
+import { openSwipe, closeSwipe, isSwipeOpen } from './swipe.js?v=80';
+import { openMetadataModal } from './metadata.js?v=80';
+import { openWelcomeCard } from './welcome.js?v=80';
+import { openFeaturedGallery } from './featured.js?v=80';
+import { openImportPlaces } from './import_places.js?v=80';
+import { openImportGeojson } from './import_geojson.js?v=80';
 
 // ---- Basemap definitions (all key-free) ----
 export const BASEMAPS = {
@@ -239,6 +239,11 @@ async function init() {
   // Drop the old baked 211 choropleth layers — they're now dynamic indicator layers.
   catalog.layers = catalog.layers.filter(l => l._generated !== 'savi211');
   catalog.categories = catalog.categories.filter(c => c.id !== 'calls211');
+
+  // Remember the pristine static catalog layers (e.g. the default Counties boundary
+  // and the Sites point layers) so Add Data can re-create one after the user fully
+  // deletes it from the layer panel.
+  catalog.layers.forEach(l => { defaultStaticCfgs[l.id] = JSON.parse(JSON.stringify(l)); });
 
   // Merge dataset categories so dynamic layers get a category tag in the panel.
   getCategories().forEach(c => {
@@ -1885,6 +1890,38 @@ function removeIndicatorLayer(indicatorId) {
   if (cfg) deleteLayer(cfg.id);
 }
 
+// Clones of the original static catalog layers (keyed by id), captured at load so a
+// deleted static layer (e.g. the default Counties boundary, a Sites point layer) can
+// be re-created when the user re-adds it from Add Data.
+let defaultStaticCfgs = {};
+
+// Turn a static catalog layer on, re-creating it from its pristine clone first if it
+// was previously deleted from the panel. Used by Add Data for Counties + Sites.
+async function activateStaticLayer(id) {
+  let cfg = findLayer(id);
+  if (!cfg && defaultStaticCfgs[id]) {
+    cfg = JSON.parse(JSON.stringify(defaultStaticCfgs[id]));
+    state.catalog.layers.push(cfg);
+  }
+  if (!cfg) return;
+  state.activeLayerIds.add(cfg.id);
+  if (!state.layerOrder.includes(cfg.id)) state.layerOrder.unshift(cfg.id);
+  await addLayer(state.map, cfg, true);
+  bindPopups(state.map, [cfg]);
+  applyLayerOrder(state.map, orderedCfgs());
+  rebuildPanel(); refreshLegend(); markDirty();
+}
+
+// Turn a static catalog layer off but keep it in the panel (so its slider/remove
+// controls stay available). Safe no-op if it isn't present.
+function deactivateStaticLayer(id) {
+  const cfg = findLayer(id);
+  if (!cfg) return;
+  state.activeLayerIds.delete(cfg.id);
+  updateLayerVisibility(state.map, cfg, false);
+  rebuildPanel(); refreshLegend(); markDirty();
+}
+
 // ---- Boundary overlays (the 7 SAVI geography levels) ----
 // Outline-only polygon layers from the prefetched boundary geojsons, offered under
 // a "Boundaries" category in Add Data. Counties is also the default on-map boundary
@@ -1913,6 +1950,7 @@ function createBoundaryCfg(t) {
     source: t.source,
     visible: true,
     opacity: 1,
+    level: t.label,   // shown as the info-window subtitle so the boundary type is clear
     paint: { 'fill-color': t.color, 'fill-opacity': 0.04, 'line-color': t.color, 'line-width': 1.2 },
     labelField: 'name',
     popup: { title: 'name', fields: [] },
@@ -1930,16 +1968,10 @@ function isBoundaryAdded(key) {
 async function addBoundaryLayer(key) {
   const t = boundaryType(key);
   if (!t) return;
-  // Counties: just (re)activate the existing static catalog layer.
+  // Counties: (re)activate the default static catalog layer, re-creating it if the
+  // user had deleted it from the panel (so it can always be added back).
   if (t.staticId) {
-    const cfg = findLayer(t.staticId);
-    if (!cfg) return;
-    state.activeLayerIds.add(cfg.id);
-    if (!state.layerOrder.includes(cfg.id)) state.layerOrder.unshift(cfg.id);
-    await addLayer(state.map, cfg, true);
-    bindPopups(state.map, [cfg]);
-    applyLayerOrder(state.map, orderedCfgs());
-    rebuildPanel(); refreshLegend(); markDirty();
+    await activateStaticLayer(t.staticId);
     return;
   }
   await withLoading('Adding boundaries\u2026', async () => {
@@ -1959,14 +1991,7 @@ function removeBoundaryLayer(key) {
   const t = boundaryType(key);
   if (!t) return;
   // Counties: deactivate the static layer but keep it in the panel.
-  if (t.staticId) {
-    const cfg = findLayer(t.staticId);
-    if (!cfg) return;
-    state.activeLayerIds.delete(cfg.id);
-    updateLayerVisibility(state.map, cfg, false);
-    rebuildPanel(); refreshLegend(); markDirty();
-    return;
-  }
+  if (t.staticId) { deactivateStaticLayer(t.staticId); return; }
   deleteLayer('bnd_' + key);
 }
 
@@ -1975,12 +2000,21 @@ function removeBoundaryLayer(key) {
 // its ids are prefixed "bnd:" so the handlers route to the boundary machinery.
 function openAddData() {
   const boundaryItems = BOUNDARY_TYPES.map(t => ({ id: 'bnd:' + t.key, label: t.label, path: 'Boundaries' }));
+  // Point datasets (Sites, Programs & Agencies) are static catalog layers, listed
+  // from their pristine clones so a deleted one still reappears here to re-add.
+  const siteItems = Object.values(defaultStaticCfgs)
+    .filter(l => l.category === 'sites' && l.geometry === 'point')
+    .map(l => ({ id: 'ste:' + l.id, label: l.label, path: 'Sites, Programs & Agencies' }));
   const isBnd = id => typeof id === 'string' && id.startsWith('bnd:');
+  const isSte = id => typeof id === 'string' && id.startsWith('ste:');
   openCatalogModal({
-    extraItems: boundaryItems,
-    onAdd: id => (isBnd(id) ? addBoundaryLayer(id.slice(4)) : addIndicatorLayer(id)),
-    onRemove: id => (isBnd(id) ? removeBoundaryLayer(id.slice(4)) : removeIndicatorLayer(id)),
-    isAdded: id => (isBnd(id) ? isBoundaryAdded(id.slice(4)) : isIndicatorAdded(id))
+    extraItems: boundaryItems.concat(siteItems),
+    onAdd: id => (isBnd(id) ? addBoundaryLayer(id.slice(4))
+      : isSte(id) ? activateStaticLayer(id.slice(4)) : addIndicatorLayer(id)),
+    onRemove: id => (isBnd(id) ? removeBoundaryLayer(id.slice(4))
+      : isSte(id) ? deactivateStaticLayer(id.slice(4)) : removeIndicatorLayer(id)),
+    isAdded: id => (isBnd(id) ? isBoundaryAdded(id.slice(4))
+      : isSte(id) ? state.activeLayerIds.has(id.slice(4)) : isIndicatorAdded(id))
   });
 }
 
