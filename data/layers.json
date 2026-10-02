@@ -379,10 +379,10 @@
       "_generated": "savi211"
     },
     {
-      "id": "sites_arts_culture_and_recreation",
-      "label": "Arts, Culture and Recreation (475)",
+      "id": "sites_environment",
+      "label": "Environment (6763)",
       "category": "sites",
-      "source": "data/savi_sites_arts_culture_and_recreation.geojson",
+      "source": "data/savi_sites_environment.geojson",
       "geometry": "point",
       "visible": false,
       "opacity": 0.9,
@@ -417,7 +417,667 @@
         {
           "type": "circle",
           "color": "#e6194B",
+          "label": "Environment"
+        }
+      ],
+      "_generated": "savisites"
+    },
+    {
+      "id": "sites_economy",
+      "label": "Economy (4360)",
+      "category": "sites",
+      "source": "data/savi_sites_economy.geojson",
+      "geometry": "point",
+      "visible": false,
+      "opacity": 0.9,
+      "paint": {
+        "circle-color": "#3cb44b",
+        "circle-radius": 4,
+        "circle-stroke-width": 1,
+        "circle-stroke-color": "#ffffff"
+      },
+      "popup": {
+        "title": "name",
+        "fields": [
+          {
+            "key": "assetType",
+            "label": "Type"
+          },
+          {
+            "key": "subcategory",
+            "label": "Category"
+          },
+          {
+            "key": "dataYear",
+            "label": "Data Year"
+          },
+          {
+            "key": "assetId",
+            "label": "Asset ID"
+          }
+        ]
+      },
+      "legend": [
+        {
+          "type": "circle",
+          "color": "#3cb44b",
+          "label": "Economy"
+        }
+      ],
+      "_generated": "savisites"
+    },
+    {
+      "id": "sites_health",
+      "label": "Health (2937)",
+      "category": "sites",
+      "source": "data/savi_sites_health.geojson",
+      "geometry": "point",
+      "visible": false,
+      "opacity": 0.9,
+      "paint": {
+        "circle-color": "#4363d8",
+        "circle-radius": 4,
+        "circle-stroke-width": 1,
+        "circle-stroke-color": "#ffffff"
+      },
+      "popup": {
+        "title": "name",
+        "fields": [
+          {
+            "key": "assetType",
+            "label": "Type"
+          },
+          {
+            "key": "subcategory",
+            "label": "Category"
+          },
+          {
+            "key": "dataYear",
+            "label": "Data Year"
+          },
+          {
+            "key": "assetId",
+            "label": "Asset ID"
+          }
+        ]
+      },
+      "legend": [
+        {
+          "type": "circle",
+          "color": "#4363d8",
+          "label": "Health"
+        }
+      ],
+      "_generated": "savisites"
+    },
+    {
+      "id": "sites_public_assistance",
+      "label": "Public Assistance (2671)",
+      "category": "sites",
+      "source": "data/savi_sites_public_assistance.geojson",
+      "geometry": "point",
+      "visible": false,
+      "opacity": 0.9,
+      "paint": {
+        "circle-color": "#f58231",
+        "circle-radius": 4,
+        "circle-stroke-width": 1,
+        "circle-stroke-color": "#ffffff"
+      },
+      "popup": {
+        "title": "name",
+        "fields": [
+          {
+            "key": "assetType",
+            "label": "Type"
+          },
+          {
+            "key": "subcategory",
+            "label": "Category"
+          },
+          {
+            "key": "dataYear",
+            "label": "Data Year"
+          },
+          {
+            "key": "assetId",
+            "label": "Asset ID"
+          }
+        ]
+      },
+      "legend": [
+        {
+          "type": "circle",
+          "color": "#f58231",
+          "label": "Public Assistance"
+        }
+      ],
+      "_generated": "savisites"
+    },
+    {
+      "id": "sites_social_and_community_services",
+      "label": "Social and Community Services (1949)",
+      "category": "sites",
+      "source": "data/savi_sites_social_and_community_services.geojson",
+      "geometry": "point",
+      "visible": false,
+      "opacity": 0.9,
+      "paint": {
+        "circle-color": "#911eb4",
+        "circle-radius": 4,
+        "circle-stroke-width": 1,
+        "circle-stroke-color": "#ffffff"
+      },
+      "popup": {
+        "title": "name",
+        "fields": [
+          {
+            "key": "assetType",
+            "label": "Type"
+          },
+          {
+            "key": "subcategory",
+            "label": "Category"
+          },
+          {
+            "key": "dataYear",
+            "label": "Data Year"
+          },
+          {
+            "key": "assetId",
+            "label": "Asset ID"
+          }
+        ]
+      },
+      "legend": [
+        {
+          "type": "circle",
+          "color": "#911eb4",
+          "label": "Social and Community Services"
+        }
+      ],
+      "_generated": "savisites"
+    },
+    {
+      "id": "sites_religion_and_faith",
+      "label": "Religion and Faith (1844)",
+      "category": "sites",
+      "source": "data/savi_sites_religion_and_faith.geojson",
+      "geometry": "point",
+      "visible": false,
+      "opacity": 0.9,
+      "paint": {
+        "circle-color": "#42d4f4",
+        "circle-radius": 4,
+        "circle-stroke-width": 1,
+        "circle-stroke-color": "#ffffff"
+      },
+      "popup": {
+        "title": "name",
+        "fields": [
+          {
+            "key": "assetType",
+            "label": "Type"
+          },
+          {
+            "key": "subcategory",
+            "label": "Category"
+          },
+          {
+            "key": "dataYear",
+            "label": "Data Year"
+          },
+          {
+            "key": "assetId",
+            "label": "Asset ID"
+          }
+        ]
+      },
+      "legend": [
+        {
+          "type": "circle",
+          "color": "#42d4f4",
+          "label": "Religion and Faith"
+        }
+      ],
+      "_generated": "savisites"
+    },
+    {
+      "id": "sites_education",
+      "label": "Education (1614)",
+      "category": "sites",
+      "source": "data/savi_sites_education.geojson",
+      "geometry": "point",
+      "visible": false,
+      "opacity": 0.9,
+      "paint": {
+        "circle-color": "#f032e6",
+        "circle-radius": 4,
+        "circle-stroke-width": 1,
+        "circle-stroke-color": "#ffffff"
+      },
+      "popup": {
+        "title": "name",
+        "fields": [
+          {
+            "key": "assetType",
+            "label": "Type"
+          },
+          {
+            "key": "subcategory",
+            "label": "Category"
+          },
+          {
+            "key": "dataYear",
+            "label": "Data Year"
+          },
+          {
+            "key": "assetId",
+            "label": "Asset ID"
+          }
+        ]
+      },
+      "legend": [
+        {
+          "type": "circle",
+          "color": "#f032e6",
+          "label": "Education"
+        }
+      ],
+      "_generated": "savisites"
+    },
+    {
+      "id": "sites_arts_culture_and_recreation",
+      "label": "Arts, Culture and Recreation (647)",
+      "category": "sites",
+      "source": "data/savi_sites_arts_culture_and_recreation.geojson",
+      "geometry": "point",
+      "visible": false,
+      "opacity": 0.9,
+      "paint": {
+        "circle-color": "#bfef45",
+        "circle-radius": 4,
+        "circle-stroke-width": 1,
+        "circle-stroke-color": "#ffffff"
+      },
+      "popup": {
+        "title": "name",
+        "fields": [
+          {
+            "key": "assetType",
+            "label": "Type"
+          },
+          {
+            "key": "subcategory",
+            "label": "Category"
+          },
+          {
+            "key": "dataYear",
+            "label": "Data Year"
+          },
+          {
+            "key": "assetId",
+            "label": "Asset ID"
+          }
+        ]
+      },
+      "legend": [
+        {
+          "type": "circle",
+          "color": "#bfef45",
           "label": "Arts, Culture and Recreation"
+        }
+      ],
+      "_generated": "savisites"
+    },
+    {
+      "id": "sites_public_safety_criminal_justice_and_legal_services",
+      "label": "Public Safety, Criminal Justice and Legal Services (589)",
+      "category": "sites",
+      "source": "data/savi_sites_public_safety_criminal_justice_and_legal_services.geojson",
+      "geometry": "point",
+      "visible": false,
+      "opacity": 0.9,
+      "paint": {
+        "circle-color": "#fabed4",
+        "circle-radius": 4,
+        "circle-stroke-width": 1,
+        "circle-stroke-color": "#ffffff"
+      },
+      "popup": {
+        "title": "name",
+        "fields": [
+          {
+            "key": "assetType",
+            "label": "Type"
+          },
+          {
+            "key": "subcategory",
+            "label": "Category"
+          },
+          {
+            "key": "dataYear",
+            "label": "Data Year"
+          },
+          {
+            "key": "assetId",
+            "label": "Asset ID"
+          }
+        ]
+      },
+      "legend": [
+        {
+          "type": "circle",
+          "color": "#fabed4",
+          "label": "Public Safety, Criminal Justice and Legal Services"
+        }
+      ],
+      "_generated": "savisites"
+    },
+    {
+      "id": "sites_housing",
+      "label": "Housing (384)",
+      "category": "sites",
+      "source": "data/savi_sites_housing.geojson",
+      "geometry": "point",
+      "visible": false,
+      "opacity": 0.9,
+      "paint": {
+        "circle-color": "#469990",
+        "circle-radius": 4,
+        "circle-stroke-width": 1,
+        "circle-stroke-color": "#ffffff"
+      },
+      "popup": {
+        "title": "name",
+        "fields": [
+          {
+            "key": "assetType",
+            "label": "Type"
+          },
+          {
+            "key": "subcategory",
+            "label": "Category"
+          },
+          {
+            "key": "dataYear",
+            "label": "Data Year"
+          },
+          {
+            "key": "assetId",
+            "label": "Asset ID"
+          }
+        ]
+      },
+      "legend": [
+        {
+          "type": "circle",
+          "color": "#469990",
+          "label": "Housing"
+        }
+      ],
+      "_generated": "savisites"
+    },
+    {
+      "id": "sites_information_resources",
+      "label": "Information Resources (325)",
+      "category": "sites",
+      "source": "data/savi_sites_information_resources.geojson",
+      "geometry": "point",
+      "visible": false,
+      "opacity": 0.9,
+      "paint": {
+        "circle-color": "#dcbeff",
+        "circle-radius": 4,
+        "circle-stroke-width": 1,
+        "circle-stroke-color": "#ffffff"
+      },
+      "popup": {
+        "title": "name",
+        "fields": [
+          {
+            "key": "assetType",
+            "label": "Type"
+          },
+          {
+            "key": "subcategory",
+            "label": "Category"
+          },
+          {
+            "key": "dataYear",
+            "label": "Data Year"
+          },
+          {
+            "key": "assetId",
+            "label": "Asset ID"
+          }
+        ]
+      },
+      "legend": [
+        {
+          "type": "circle",
+          "color": "#dcbeff",
+          "label": "Information Resources"
+        }
+      ],
+      "_generated": "savisites"
+    },
+    {
+      "id": "sites_government_offices",
+      "label": "Government Offices (192)",
+      "category": "sites",
+      "source": "data/savi_sites_government_offices.geojson",
+      "geometry": "point",
+      "visible": false,
+      "opacity": 0.9,
+      "paint": {
+        "circle-color": "#9A6324",
+        "circle-radius": 4,
+        "circle-stroke-width": 1,
+        "circle-stroke-color": "#ffffff"
+      },
+      "popup": {
+        "title": "name",
+        "fields": [
+          {
+            "key": "assetType",
+            "label": "Type"
+          },
+          {
+            "key": "subcategory",
+            "label": "Category"
+          },
+          {
+            "key": "dataYear",
+            "label": "Data Year"
+          },
+          {
+            "key": "assetId",
+            "label": "Asset ID"
+          }
+        ]
+      },
+      "legend": [
+        {
+          "type": "circle",
+          "color": "#9A6324",
+          "label": "Government Offices"
+        }
+      ],
+      "_generated": "savisites"
+    },
+    {
+      "id": "sites_united_way",
+      "label": "United Way (83)",
+      "category": "sites",
+      "source": "data/savi_sites_united_way.geojson",
+      "geometry": "point",
+      "visible": false,
+      "opacity": 0.9,
+      "paint": {
+        "circle-color": "#800000",
+        "circle-radius": 4,
+        "circle-stroke-width": 1,
+        "circle-stroke-color": "#ffffff"
+      },
+      "popup": {
+        "title": "name",
+        "fields": [
+          {
+            "key": "assetType",
+            "label": "Type"
+          },
+          {
+            "key": "subcategory",
+            "label": "Category"
+          },
+          {
+            "key": "dataYear",
+            "label": "Data Year"
+          },
+          {
+            "key": "assetId",
+            "label": "Asset ID"
+          }
+        ]
+      },
+      "legend": [
+        {
+          "type": "circle",
+          "color": "#800000",
+          "label": "United Way"
+        }
+      ],
+      "_generated": "savisites"
+    },
+    {
+      "id": "sites_transportation_and_mobility",
+      "label": "Transportation and Mobility (58)",
+      "category": "sites",
+      "source": "data/savi_sites_transportation_and_mobility.geojson",
+      "geometry": "point",
+      "visible": false,
+      "opacity": 0.9,
+      "paint": {
+        "circle-color": "#808000",
+        "circle-radius": 4,
+        "circle-stroke-width": 1,
+        "circle-stroke-color": "#ffffff"
+      },
+      "popup": {
+        "title": "name",
+        "fields": [
+          {
+            "key": "assetType",
+            "label": "Type"
+          },
+          {
+            "key": "subcategory",
+            "label": "Category"
+          },
+          {
+            "key": "dataYear",
+            "label": "Data Year"
+          },
+          {
+            "key": "assetId",
+            "label": "Asset ID"
+          }
+        ]
+      },
+      "legend": [
+        {
+          "type": "circle",
+          "color": "#808000",
+          "label": "Transportation and Mobility"
+        }
+      ],
+      "_generated": "savisites"
+    },
+    {
+      "id": "sites_income_support_and_employment",
+      "label": "Income Support and Employment (25)",
+      "category": "sites",
+      "source": "data/savi_sites_income_support_and_employment.geojson",
+      "geometry": "point",
+      "visible": false,
+      "opacity": 0.9,
+      "paint": {
+        "circle-color": "#000075",
+        "circle-radius": 4,
+        "circle-stroke-width": 1,
+        "circle-stroke-color": "#ffffff"
+      },
+      "popup": {
+        "title": "name",
+        "fields": [
+          {
+            "key": "assetType",
+            "label": "Type"
+          },
+          {
+            "key": "subcategory",
+            "label": "Category"
+          },
+          {
+            "key": "dataYear",
+            "label": "Data Year"
+          },
+          {
+            "key": "assetId",
+            "label": "Asset ID"
+          }
+        ]
+      },
+      "legend": [
+        {
+          "type": "circle",
+          "color": "#000075",
+          "label": "Income Support and Employment"
+        }
+      ],
+      "_generated": "savisites"
+    },
+    {
+      "id": "sites_organizational_community_international_services",
+      "label": "Organizational/Community/International Services (22)",
+      "category": "sites",
+      "source": "data/savi_sites_organizational_community_international_services.geojson",
+      "geometry": "point",
+      "visible": false,
+      "opacity": 0.9,
+      "paint": {
+        "circle-color": "#a9a9a9",
+        "circle-radius": 4,
+        "circle-stroke-width": 1,
+        "circle-stroke-color": "#ffffff"
+      },
+      "popup": {
+        "title": "name",
+        "fields": [
+          {
+            "key": "assetType",
+            "label": "Type"
+          },
+          {
+            "key": "subcategory",
+            "label": "Category"
+          },
+          {
+            "key": "dataYear",
+            "label": "Data Year"
+          },
+          {
+            "key": "assetId",
+            "label": "Asset ID"
+          }
+        ]
+      },
+      "legend": [
+        {
+          "type": "circle",
+          "color": "#a9a9a9",
+          "label": "Organizational/Community/International Services"
         }
       ],
       "_generated": "savisites"
