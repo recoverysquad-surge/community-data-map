@@ -3,7 +3,7 @@
 // classic site's CommunityProfiles.aspx fact sheet, but built from the harvested shards.
 
 import { loadDataset, getCategories, getIndicators, getLevels, getIndicator,
-  availableDisplays, resolveSelection, getValueMap } from './dataset.js?v=82';
+  availableDisplays, resolveSelection, getValueMap } from './dataset.js?v=83';
 
 // ---- module state (one live profile at a time) ----
 const P = {

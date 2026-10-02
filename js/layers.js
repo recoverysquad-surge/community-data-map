@@ -1,6 +1,6 @@
 // SAVI — layer management: add/remove/style layers from config + popups.
 
-import { makeDraggable } from './panels.js?v=82';
+import { makeDraggable } from './panels.js?v=83';
 
 const loadedSources = new Set();
 
@@ -577,6 +577,9 @@ export function bindPopups(map, layerCfgs, opts = {}) {
   const pinLayerIds = () => [...popupRegistry.entries()]
     .filter(([id, cfg]) => cfg.kind === 'pins' && map.getLayer(id))
     .map(([id]) => id);
+  const pointLayerIds = () => [...popupRegistry.entries()]
+    .filter(([id, cfg]) => cfg.geometry === 'point' && cfg.kind !== 'pins' && map.getLayer(id))
+    .map(([id]) => id);
   const matchesAt = (point) => {
     // Pins first: query a small padded box so near-clicks still register on the
     // small dot, and ISOLATE to the pin — never surface the underlying geography
@@ -589,6 +592,26 @@ export function bindPopups(map, layerCfgs, opts = {}) {
       if (pinFeats.length) {
         const f = pinFeats[0];   // topmost pin wins
         return [{ cfg: popupRegistry.get(f.layer.id), props: f.properties, isPin: true }];
+      }
+    }
+    // Site/asset POINTS next: also small targets. ISOLATE to the clicked point so
+    // its own name/fields fill the popup — otherwise the geography polygon beneath
+    // (e.g. a county) would win the window title and the point's name would be lost.
+    const ptIds = pointLayerIds();
+    if (ptIds.length) {
+      const pad = 6;
+      const box = [[point.x - pad, point.y - pad], [point.x + pad, point.y + pad]];
+      const ptFeats = map.queryRenderedFeatures(box, { layers: ptIds });
+      if (ptFeats.length) {
+        const seen = new Set();
+        const out = [];
+        ptFeats.forEach(f => {
+          const cfg = popupRegistry.get(f.layer.id);
+          if (!cfg || seen.has(cfg.id)) return;   // one section per point layer
+          seen.add(cfg.id);
+          out.push({ cfg, props: f.properties });
+        });
+        return out;
       }
     }
     const ids = liveLayers();
@@ -636,8 +659,15 @@ export function bindPopups(map, layerCfgs, opts = {}) {
     let body = '';
     matches.forEach((m, k) => {
       body += `<div class="savi-popup-section">`;
-      // Show a per-section label only when several layers are stacked here.
-      if (matches.length > 1) body += `<div class="savi-popup-layer">${escapeHtml(m.cfg.label)}</div>`;
+      // When several layers are stacked here, each section names its own layer AND
+      // its own feature (geography/point name) — otherwise only the window's single
+      // title (matches[0]) is named and every other layer's name is lost.
+      if (matches.length > 1) {
+        body += `<div class="savi-popup-layer">${escapeHtml(m.cfg.label)}</div>`;
+        const secName = m.props[m.cfg.popup.title];
+        if (secName != null && secName !== '')
+          body += `<div class="savi-popup-name">${escapeHtml(String(secName))}</div>`;
+      }
       body += fieldsHtml(m.cfg, m.props);
       body += `<div class="savi-popup-trend" data-idx="${k}" data-loading="1"></div>`;
       if (popupActions) body += `<div class="savi-popup-actions" data-idx="${k}"></div>`;

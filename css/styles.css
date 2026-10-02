@@ -1080,10 +1080,18 @@ html, body {
   border-top: 1px solid var(--border);
 }
 .savi-popup-layer {
-  font-size: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+  margin-bottom: 1px;
+}
+.savi-popup-name {
+  font-size: 13px;
   font-weight: 700;
   color: var(--text);
-  margin-bottom: 2px;
+  margin-bottom: 3px;
 }
 
 /* Trend sparkline appended inside the click popup */
