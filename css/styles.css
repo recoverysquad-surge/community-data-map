@@ -2490,22 +2490,25 @@ html, body {
   top: 70px;
   left: 50%;
   transform: translateX(-50%);
-  width: min(880px, 94vw);
+  width: min(560px, 94vw);
   max-height: calc(100vh - 110px);
   z-index: 40;
 }
 /* Apply the tall default height only when expanded, so minimizing (collapsing)
    shrinks the panel to just its header instead of leaving a tall empty box. */
-.float-panel.float-help:not(.collapsed) { height: min(640px, calc(100vh - 150px)); }
+.float-panel.float-help:not(.collapsed) { height: min(620px, calc(100vh - 150px)); }
 .float-help.dragging { transform: none; }
 /* The body is a flex column with no padding so the search bar + two-pane body
-   fill it; the list/article panes scroll internally. */
+   fill it; the list/article panes scroll internally. The ID selector here would
+   otherwise beat the generic `.float-panel.collapsed .float-panel-body{display:none}`
+   collapse rule, so an explicit collapsed override keeps minimize working. */
 #panel-help .float-panel-body {
   padding: 0;
   overflow: hidden;
   display: flex;
   flex-direction: column;
 }
+#panel-help.collapsed .float-panel-body { display: none; }
 #help-root { display: flex; flex-direction: column; flex: 1; min-height: 0; }
 .help-search-wrap {
   padding: 10px 12px;
@@ -2525,7 +2528,7 @@ html, body {
 }
 .help-body { flex: 1; display: flex; min-height: 0; }
 .help-list {
-  width: 260px;
+  width: 200px;
   flex-shrink: 0;
   overflow-y: auto;
   padding: 10px 8px;
