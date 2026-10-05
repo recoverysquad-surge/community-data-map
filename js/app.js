@@ -1,22 +1,22 @@
 // SAVI Single-Map Interface — app entry point.
 // Initializes MapLibre, loads the layer catalog, and wires up UI.
 
-import { addLayer, updateLayerVisibility, updateLayerOpacity, bindPopups, reAddAllLayers, applyLayerOrder, setLayerColor, setLayerPattern, setLayerPatternOpacity, setLayerRamp, reclassify, removeLayer, applyIndicatorSelection, RAMPS } from './layers.js?v=86';
-import { buildLayerPanel, buildLegend, buildBasemapSwitcher, openCatalogModal } from './ui.js?v=86';
-import { makeDraggable, makeCollapsible, makeResizable, resetPanelLayout } from './panels.js?v=86';
+import { addLayer, updateLayerVisibility, updateLayerOpacity, bindPopups, reAddAllLayers, applyLayerOrder, setLayerColor, setLayerPattern, setLayerPatternOpacity, setLayerRamp, reclassify, removeLayer, applyIndicatorSelection, RAMPS } from './layers.js?v=87';
+import { buildLayerPanel, buildLegend, buildBasemapSwitcher, openCatalogModal } from './ui.js?v=87';
+import { makeDraggable, makeCollapsible, makeResizable, resetPanelLayout } from './panels.js?v=87';
 import { buildToolbar, showToast, exportImage, exportPdf, exportData, exportLayer, setSaveDirty,
   listSavedMaps, getSavedMap, saveNamedMap, deleteSavedMap,
   getActiveMapId, setActiveMapId, clearActiveMapId, withLoading,
-  openSaveMapDialog, openSavedMapsDialog, downloadBlob, stamp } from './toolbar.js?v=86';
-import { ANY, loadDataset, getCategories, getIndicator, getLevels, availableYears, resolveSelection, getValueMap, geometryFor } from './dataset.js?v=86';
-import { openTableModal } from './table.js?v=86';
-import { openProfileModal } from './profile.js?v=86';
-import { openSwipe, closeSwipe, isSwipeOpen } from './swipe.js?v=86';
-import { openMetadataModal } from './metadata.js?v=86';
-import { openWelcomeCard } from './welcome.js?v=86';
-import { openFeaturedGallery } from './featured.js?v=86';
-import { openImportPlaces } from './import_places.js?v=86';
-import { openImportGeojson } from './import_geojson.js?v=86';
+  openSaveMapDialog, openSavedMapsDialog, downloadBlob, stamp } from './toolbar.js?v=87';
+import { ANY, loadDataset, getCategories, getIndicator, getLevels, availableYears, resolveSelection, getValueMap, geometryFor } from './dataset.js?v=87';
+import { openTableModal } from './table.js?v=87';
+import { openProfileModal } from './profile.js?v=87';
+import { openSwipe, closeSwipe, isSwipeOpen } from './swipe.js?v=87';
+import { openMetadataModal } from './metadata.js?v=87';
+import { openWelcomeCard } from './welcome.js?v=87';
+import { openFeaturedGallery } from './featured.js?v=87';
+import { openImportPlaces } from './import_places.js?v=87';
+import { openImportGeojson } from './import_geojson.js?v=87';
 
 // ---- Basemap definitions (all key-free) ----
 export const BASEMAPS = {
@@ -636,6 +636,12 @@ async function init() {
   // "+" opens the indicator catalog modal.
   const addBtn = document.getElementById('add-data-btn');
   if (addBtn) addBtn.addEventListener('click', () => openAddData());
+
+  // Bulk-clear buttons in the Layers panel header.
+  const clearAllBtn = document.getElementById('clear-all-btn');
+  if (clearAllBtn) clearAllBtn.addEventListener('click', () => clearLayers('all'));
+  const clearHiddenBtn = document.getElementById('clear-hidden-btn');
+  if (clearHiddenBtn) clearHiddenBtn.addEventListener('click', () => clearLayers('hidden'));
 
   // ---- Floating panels: draggable + collapsible + a close (X) on the far right ----
   document.querySelectorAll('.float-panel').forEach(panel => {
@@ -2046,6 +2052,36 @@ function deleteLayer(layerId) {
   refreshLegend();
   refreshTimeSlider();
   markDirty();
+}
+
+// Bulk-remove layers. scope 'all' = every layer in the panel; 'hidden' = only the
+// layers whose checkbox is unchecked (not currently visible). Batches one panel
+// rebuild instead of per-layer (unlike calling deleteLayer in a loop).
+function clearLayers(scope) {
+  const ids = state.catalog.layers
+    .filter(l => scope === 'all' || !state.activeLayerIds.has(l.id))
+    .map(l => l.id);
+  if (!ids.length) {
+    showToast(scope === 'all' ? 'No layers to clear.' : 'No hidden layers to clear.');
+    return;
+  }
+  if (scope === 'all' &&
+      !window.confirm(`Remove all ${ids.length} layer${ids.length === 1 ? '' : 's'} from the map?`)) {
+    return;
+  }
+  const drop = new Set(ids);
+  ids.forEach(id => { const cfg = findLayer(id); if (cfg) removeLayer(state.map, cfg); });
+  state.catalog.layers = state.catalog.layers.filter(l => !drop.has(l.id));
+  state.layerOrder = state.layerOrder.filter(id => !drop.has(id));
+  ids.forEach(id => state.activeLayerIds.delete(id));
+  rebuildPanel();
+  refreshLegend();
+  refreshTimeSlider();
+  markDirty();
+  const n = ids.length;
+  showToast(scope === 'all'
+    ? `Cleared ${n} layer${n === 1 ? '' : 's'}.`
+    : `Cleared ${n} hidden layer${n === 1 ? '' : 's'}.`);
 }
 
 // Apply a new Reporting Level / Display / Year selection to a dynamic layer.

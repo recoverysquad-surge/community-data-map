@@ -15,7 +15,7 @@
   <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
   <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 
-  <link href="css/styles.css?v=86" rel="stylesheet" />
+  <link href="css/styles.css?v=87" rel="stylesheet" />
 </head>
 <body>
   <div id="app">
@@ -42,7 +42,8 @@
     <section class="float-panel float-layers" id="panel-layers" role="region" aria-label="Layers">
       <header class="float-panel-header">
         <span class="float-panel-title">Layers</span>
-        <span class="float-panel-hint">drag to reorder · top = on top</span>
+        <button id="clear-all-btn" class="clear-btn" type="button" title="Remove all layers from the map">Clear all</button>
+        <button id="clear-hidden-btn" class="clear-btn" type="button" title="Remove layers that are not currently visible">Clear hidden</button>
         <button id="add-data-btn" class="add-data-btn" type="button" title="Add a data layer to the map" aria-label="Add data layer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6 2 9 8 12 14 9 8 6Z"/><path d="M2 15 8 18 14 15"/><path d="M18.5 7V13M15.5 10H21.5"/></svg></button>
         <button class="collapse-btn" type="button" aria-label="Collapse panel">–</button>
       </header>
@@ -81,6 +82,6 @@
     </section>
   </div>
 
-  <script type="module" src="js/app.js?v=86"></script>
+  <script type="module" src="js/app.js?v=87"></script>
 </body>
 </html>
