@@ -1,6 +1,6 @@
 // SAVI — layer management: add/remove/style layers from config + popups.
 
-import { makeDraggable } from './panels.js?v=88';
+import { makeDraggable } from './panels.js?v=89';
 
 const loadedSources = new Set();
 
@@ -37,10 +37,19 @@ function linePaint(cfg) {
   const generic = !p['line-color'] || p['line-color'] === '#666' || p['line-color'] === '#666666' || p['line-color'] === '#555555';
   const lineColor = (cfg.geometry === 'polygon' && generic) ? accentColor(cfg) : (p['line-color'] || '#333333');
   return {
-    'line-color': lineColor,
+    // On choropleth (data) layers, no-data geographies get a transparent outline so
+    // they disappear completely (matching the transparent fill). Boundary overlays
+    // have no cfg.choropleth, so their outlines always show.
+    'line-color': cfg.choropleth ? choroplethLineColor(cfg, lineColor) : lineColor,
     'line-width': p['line-width'] != null ? p['line-width'] : 1,
     'line-opacity': cfg.opacity != null ? cfg.opacity : 1
   };
+}
+
+// Line color for a choropleth layer: transparent where the field is null (no data
+// reported), the given base color otherwise.
+function choroplethLineColor(cfg, baseColor) {
+  return ['case', ['==', ['get', cfg.choropleth.field], null], 'rgba(0,0,0,0)', baseColor];
 }
 
 // Derive a single representative accent color for a layer from its style config.
@@ -186,7 +195,7 @@ export function setLayerColor(map, cfg, color) {
   cfg.paint = cfg.paint || {};
   if (cfg.choropleth) {
     cfg.paint['line-color'] = color;
-    if (map.getLayer(`${cfg.id}-line`)) map.setPaintProperty(`${cfg.id}-line`, 'line-color', color);
+    if (map.getLayer(`${cfg.id}-line`)) map.setPaintProperty(`${cfg.id}-line`, 'line-color', choroplethLineColor(cfg, color));
   } else if (cfg.geometry === 'point') {
     cfg.paint['circle-color'] = color;
     if (map.getLayer(`${cfg.id}-circle`)) map.setPaintProperty(`${cfg.id}-circle`, 'circle-color', color);
@@ -222,7 +231,7 @@ export function setLayerRamp(map, cfg, rampName) {
   const p = cfg.paint || {};
   const generic = !p['line-color'] || ['#666', '#666666', '#555555'].includes(p['line-color']);
   if (generic && map.getLayer(`${cfg.id}-line`)) {
-    map.setPaintProperty(`${cfg.id}-line`, 'line-color', accentColor(cfg));
+    map.setPaintProperty(`${cfg.id}-line`, 'line-color', choroplethLineColor(cfg, accentColor(cfg)));
   }
   // Refresh an active pattern that follows the accent.
   if (cfg.pattern && cfg.pattern !== 'none' && !cfg.patternColor) setLayerPattern(map, cfg, cfg.pattern);
@@ -351,7 +360,7 @@ export function reclassify(map, cfg) {
     const p = cfg.paint || {};
     const generic = !p['line-color'] || ['#666', '#666666', '#555555'].includes(p['line-color']);
     if (generic && map.getLayer(`${cfg.id}-line`)) {
-      map.setPaintProperty(`${cfg.id}-line`, 'line-color', accentColor(cfg));
+      map.setPaintProperty(`${cfg.id}-line`, 'line-color', choroplethLineColor(cfg, accentColor(cfg)));
     }
   }
 }
@@ -413,11 +422,12 @@ export function applyIndicatorSelection(map, cfg, meta) {
     if (map.getLayer(`${cfg.id}-fill`)) {
       map.setPaintProperty(`${cfg.id}-fill`, 'fill-color', choroplethExpr(cfg.choropleth));
     }
-    // Keep the accent-derived outline in sync with the (possibly new) ramp.
+    // Keep the accent-derived outline in sync with the (possibly new) ramp, while
+    // preserving the transparent-outline-on-no-data rule for choropleth layers.
     const p = cfg.paint || {};
     const generic = !p['line-color'] || ['#666', '#666666', '#555555'].includes(p['line-color']);
     if (generic && map.getLayer(`${cfg.id}-line`)) {
-      map.setPaintProperty(`${cfg.id}-line`, 'line-color', accentColor(cfg));
+      map.setPaintProperty(`${cfg.id}-line`, 'line-color', choroplethLineColor(cfg, accentColor(cfg)));
     }
   }
 }
