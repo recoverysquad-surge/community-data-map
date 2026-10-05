@@ -1,9 +1,9 @@
 // SAVI — UI builders: flat draggable layer list, legend, basemap switcher.
 
-import { accentColor, RAMPS } from './layers.js?v=84';
+import { accentColor, RAMPS } from './layers.js?v=85';
 import { ANY, availableLevels, availableDisplays, availableYears,
-  searchIndicators, getLevels } from './dataset.js?v=84';
-import { makeDraggable } from './panels.js?v=84';
+  searchIndicators, getLevels } from './dataset.js?v=85';
+import { makeDraggable } from './panels.js?v=85';
 
 // Normalize any hex color to #rrggbb (input[type=color] requires the 6-digit form).
 function toHex(c) {
@@ -832,7 +832,7 @@ function renderSearch(body, query, handlers, geoFilter = ANY) {
   const CAP = 400;
   const list = document.createElement('div');
   list.className = 'catalog-cat';
-  matches.slice(0, CAP).forEach(ind => list.appendChild(catalogItem(ind, handlers, true)));
+  matches.slice(0, CAP).forEach(ind => list.appendChild(catalogItem(ind, handlers, true, geoFilter)));
   body.appendChild(list);
   if (matches.length > CAP) {
     const more = document.createElement('p');
@@ -917,7 +917,7 @@ function renderBrowse(body, overlay, render, handlers) {
     const list = document.createElement('div');
     list.className = 'catalog-cat';
     items.sort((a, b) => a.label.localeCompare(b.label));
-    items.forEach(ind => list.appendChild(catalogItem(ind, handlers, false)));
+    items.forEach(ind => list.appendChild(catalogItem(ind, handlers, false, geoFilter)));
     body.appendChild(list);
   }
 
@@ -926,7 +926,7 @@ function renderBrowse(body, overlay, render, handlers) {
   }
 }
 
-function catalogItem(ind, handlers, showPath = true) {
+function catalogItem(ind, handlers, showPath = true, geoFilter = ANY) {
   const it = document.createElement('div');
   it.className = 'catalog-item';
   const text = document.createElement('div');
@@ -960,7 +960,7 @@ function catalogItem(ind, handlers, showPath = true) {
     if (added) {
       if (handlers.onRemove) handlers.onRemove(ind.id);
     } else {
-      await handlers.onAdd(ind.id);
+      await handlers.onAdd(ind.id, geoFilter);
     }
     refresh();
   });

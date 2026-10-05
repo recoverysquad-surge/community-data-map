@@ -1,22 +1,22 @@
 // SAVI Single-Map Interface — app entry point.
 // Initializes MapLibre, loads the layer catalog, and wires up UI.
 
-import { addLayer, updateLayerVisibility, updateLayerOpacity, bindPopups, reAddAllLayers, applyLayerOrder, setLayerColor, setLayerPattern, setLayerPatternOpacity, setLayerRamp, reclassify, removeLayer, applyIndicatorSelection, RAMPS } from './layers.js?v=84';
-import { buildLayerPanel, buildLegend, buildBasemapSwitcher, openCatalogModal } from './ui.js?v=84';
-import { makeDraggable, makeCollapsible, makeResizable, resetPanelLayout } from './panels.js?v=84';
+import { addLayer, updateLayerVisibility, updateLayerOpacity, bindPopups, reAddAllLayers, applyLayerOrder, setLayerColor, setLayerPattern, setLayerPatternOpacity, setLayerRamp, reclassify, removeLayer, applyIndicatorSelection, RAMPS } from './layers.js?v=85';
+import { buildLayerPanel, buildLegend, buildBasemapSwitcher, openCatalogModal } from './ui.js?v=85';
+import { makeDraggable, makeCollapsible, makeResizable, resetPanelLayout } from './panels.js?v=85';
 import { buildToolbar, showToast, exportImage, exportPdf, exportData, exportLayer, setSaveDirty,
   listSavedMaps, getSavedMap, saveNamedMap, deleteSavedMap,
   getActiveMapId, setActiveMapId, clearActiveMapId, withLoading,
-  openSaveMapDialog, openSavedMapsDialog, downloadBlob, stamp } from './toolbar.js?v=84';
-import { ANY, loadDataset, getCategories, getIndicator, getLevels, availableYears, resolveSelection, getValueMap, geometryFor } from './dataset.js?v=84';
-import { openTableModal } from './table.js?v=84';
-import { openProfileModal } from './profile.js?v=84';
-import { openSwipe, closeSwipe, isSwipeOpen } from './swipe.js?v=84';
-import { openMetadataModal } from './metadata.js?v=84';
-import { openWelcomeCard } from './welcome.js?v=84';
-import { openFeaturedGallery } from './featured.js?v=84';
-import { openImportPlaces } from './import_places.js?v=84';
-import { openImportGeojson } from './import_geojson.js?v=84';
+  openSaveMapDialog, openSavedMapsDialog, downloadBlob, stamp } from './toolbar.js?v=85';
+import { ANY, loadDataset, getCategories, getIndicator, getLevels, availableYears, resolveSelection, getValueMap, geometryFor } from './dataset.js?v=85';
+import { openTableModal } from './table.js?v=85';
+import { openProfileModal } from './profile.js?v=85';
+import { openSwipe, closeSwipe, isSwipeOpen } from './swipe.js?v=85';
+import { openMetadataModal } from './metadata.js?v=85';
+import { openWelcomeCard } from './welcome.js?v=85';
+import { openFeaturedGallery } from './featured.js?v=85';
+import { openImportPlaces } from './import_places.js?v=85';
+import { openImportGeojson } from './import_geojson.js?v=85';
 
 // ---- Basemap definitions (all key-free) ----
 export const BASEMAPS = {
@@ -492,6 +492,12 @@ async function init() {
       });
     },
     onNewMap: () => {
+      // Stop autosave first: otherwise the debounced timer or the pagehide flush
+      // fires during the reload and re-creates an active autosave map from the
+      // CURRENT layers (ensureAutosaveMap), which init() then restores — so the
+      // "new" map would come back with all the old data layers.
+      state.autosave = false;
+      if (state.autosaveTimer) { clearTimeout(state.autosaveTimer); state.autosaveTimer = null; }
       clearActiveMapId();
       state.activeMapId = null;
       // Signal init() to skip the "restore last saved map" fallback on this reload.
@@ -1861,9 +1867,12 @@ async function applyFeatured(entry) {
 }
 
 // Add a new dynamic indicator layer from the catalog modal.
-async function addIndicatorLayer(indicatorId) {
+async function addIndicatorLayer(indicatorId, geoFilter) {
   await withLoading('Adding data\u2026', async () => {
-    const cfg = await createIndicatorCfg(indicatorId, { level: ANY, display: ANY, year: ANY }, pickDistinctStyle());
+    // Honor the Add Data geography filter: when a specific level is chosen, seed the
+    // layer at that level (otherwise ANY resolves to the indicator's first level).
+    const level = (geoFilter && geoFilter !== ANY) ? geoFilter : ANY;
+    const cfg = await createIndicatorCfg(indicatorId, { level, display: ANY, year: ANY }, pickDistinctStyle());
     if (!cfg) { showToast('No data available for that indicator.'); return; }
     state.catalog.layers.push(cfg);
     state.layerOrder.unshift(cfg.id);      // new layers start on top
@@ -2012,8 +2021,8 @@ function openAddData() {
   const isSte = id => typeof id === 'string' && id.startsWith('ste:');
   openCatalogModal({
     extraItems: boundaryItems.concat(siteItems),
-    onAdd: id => (isBnd(id) ? addBoundaryLayer(id.slice(4))
-      : isSte(id) ? activateStaticLayer(id.slice(4)) : addIndicatorLayer(id)),
+    onAdd: (id, geo) => (isBnd(id) ? addBoundaryLayer(id.slice(4))
+      : isSte(id) ? activateStaticLayer(id.slice(4)) : addIndicatorLayer(id, geo)),
     onRemove: id => (isBnd(id) ? removeBoundaryLayer(id.slice(4))
       : isSte(id) ? deactivateStaticLayer(id.slice(4)) : removeIndicatorLayer(id)),
     isAdded: id => (isBnd(id) ? isBoundaryAdded(id.slice(4))
