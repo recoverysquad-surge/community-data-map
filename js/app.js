@@ -1,23 +1,23 @@
 // SAVI Single-Map Interface — app entry point.
 // Initializes MapLibre, loads the layer catalog, and wires up UI.
 
-import { addLayer, updateLayerVisibility, updateLayerOpacity, bindPopups, reAddAllLayers, applyLayerOrder, setLayerColor, setLayerPattern, setLayerPatternOpacity, setLayerRamp, reclassify, removeLayer, applyIndicatorSelection, RAMPS } from './layers.js?v=90';
-import { buildLayerPanel, buildLegend, buildBasemapSwitcher, openCatalogModal } from './ui.js?v=90';
-import { makeDraggable, makeCollapsible, makeResizable, resetPanelLayout } from './panels.js?v=90';
+import { addLayer, updateLayerVisibility, updateLayerOpacity, bindPopups, reAddAllLayers, applyLayerOrder, setLayerColor, setLayerPattern, setLayerPatternOpacity, setLayerRamp, reclassify, removeLayer, applyIndicatorSelection, RAMPS } from './layers.js?v=91';
+import { buildLayerPanel, buildLegend, buildBasemapSwitcher, openCatalogModal } from './ui.js?v=91';
+import { makeDraggable, makeCollapsible, makeResizable, resetPanelLayout } from './panels.js?v=91';
 import { buildToolbar, showToast, exportImage, exportPdf, exportData, exportLayer, setSaveDirty,
   listSavedMaps, getSavedMap, saveNamedMap, deleteSavedMap,
   getActiveMapId, setActiveMapId, clearActiveMapId, withLoading,
-  openSaveMapDialog, openSavedMapsDialog, downloadBlob, stamp } from './toolbar.js?v=90';
-import { ANY, loadDataset, getCategories, getIndicator, getLevels, availableYears, resolveSelection, getValueMap, geometryFor } from './dataset.js?v=90';
-import { openTableModal } from './table.js?v=90';
-import { openProfileModal } from './profile.js?v=90';
-import { openSwipe, closeSwipe, isSwipeOpen } from './swipe.js?v=90';
-import { openMetadataModal } from './metadata.js?v=90';
-import { openWelcomeCard } from './welcome.js?v=90';
-import { openHelpModal } from './help.js?v=90';
-import { openFeaturedGallery } from './featured.js?v=90';
-import { openImportPlaces } from './import_places.js?v=90';
-import { openImportGeojson } from './import_geojson.js?v=90';
+  openSaveMapDialog, openSavedMapsDialog, downloadBlob, stamp } from './toolbar.js?v=91';
+import { ANY, loadDataset, getCategories, getIndicator, getLevels, availableYears, resolveSelection, getValueMap, geometryFor } from './dataset.js?v=91';
+import { openTableModal } from './table.js?v=91';
+import { openProfileModal } from './profile.js?v=91';
+import { openSwipe, closeSwipe, isSwipeOpen } from './swipe.js?v=91';
+import { openMetadataModal } from './metadata.js?v=91';
+import { openWelcomeCard } from './welcome.js?v=91';
+import { openHelpPanel } from './help.js?v=91';
+import { openFeaturedGallery } from './featured.js?v=91';
+import { openImportPlaces } from './import_places.js?v=91';
+import { openImportGeojson } from './import_geojson.js?v=91';
 
 // ---- Basemap definitions (all key-free) ----
 export const BASEMAPS = {
@@ -445,6 +445,13 @@ async function init() {
           state.timelineTouched = true;
           markDirtyNow();
         } },
+      { key: 'help', label: 'Help', group: 'panel', el: document.getElementById('panel-help'),
+        onToggle: () => {
+          const h = document.getElementById('panel-help');
+          if (h.classList.contains('hidden')) openHelpPanel();   // show + build + focus
+          else h.classList.add('hidden');
+          markDirtyNow();
+        } },
       { key: 'swipe', label: 'Swipe compare', group: 'tool',
         isOn: () => isSwipeOpen(),
         onToggle: () => openSwipeCompare() },
@@ -537,7 +544,7 @@ async function init() {
     onOpenFeatured: () => openFeaturedGallery({ apply: applyFeatured }),
     onImportPlaces: () => openImportPlaces({ createPlacesLayer, sampleHref: 'data/sample_places.csv' }),
     onImportGeojson: () => openImportGeojson({ createGeojsonLayer }),
-    onOpenHelp: () => openHelpModal(),
+    onOpenHelp: () => openHelpPanel(),
     onOpenWelcome: () => openWelcomeCard({
       onBrowseFeatured: () => openFeaturedGallery({ apply: applyFeatured }),
       onAddData: () => openAddData()
@@ -639,15 +646,14 @@ async function init() {
   const addBtn = document.getElementById('add-data-btn');
   if (addBtn) addBtn.addEventListener('click', () => openAddData());
 
-  // Bulk-clear buttons in the Layers panel header.
-  const clearAllBtn = document.getElementById('clear-all-btn');
-  if (clearAllBtn) clearAllBtn.addEventListener('click', () => clearLayers('all'));
-  const clearHiddenBtn = document.getElementById('clear-hidden-btn');
-  if (clearHiddenBtn) clearHiddenBtn.addEventListener('click', () => clearLayers('hidden'));
+  // Single Clear button in the Layers panel header opens a modal that asks whether
+  // to clear all layers or just the hidden ones.
+  const clearBtn = document.getElementById('clear-btn');
+  if (clearBtn) clearBtn.addEventListener('click', () => openClearDialog());
 
   // Footer Help button opens the searchable knowledge base.
   const helpBtn = document.getElementById('help-btn');
-  if (helpBtn) helpBtn.addEventListener('click', () => openHelpModal());
+  if (helpBtn) helpBtn.addEventListener('click', () => openHelpPanel());
 
   // ---- Floating panels: draggable + collapsible + a close (X) on the far right ----
   document.querySelectorAll('.float-panel').forEach(panel => {
@@ -657,7 +663,7 @@ async function init() {
     if (collapseBtn) makeCollapsible(panel, collapseBtn, () => markDirty());
     // The Layers and Legend panels are the tall, content-heavy ones — let users
     // resize them from a bottom-right grip.
-    if (panel.id === 'panel-layers' || panel.id === 'panel-legend') {
+    if (panel.id === 'panel-layers' || panel.id === 'panel-legend' || panel.id === 'panel-help') {
       makeResizable(panel, () => markDirty());
     }
 
@@ -2071,10 +2077,6 @@ function clearLayers(scope) {
     showToast(scope === 'all' ? 'No layers to clear.' : 'No hidden layers to clear.');
     return;
   }
-  if (scope === 'all' &&
-      !window.confirm(`Remove all ${ids.length} layer${ids.length === 1 ? '' : 's'} from the map?`)) {
-    return;
-  }
   const drop = new Set(ids);
   ids.forEach(id => { const cfg = findLayer(id); if (cfg) removeLayer(state.map, cfg); });
   state.catalog.layers = state.catalog.layers.filter(l => !drop.has(l.id));
@@ -2088,6 +2090,50 @@ function clearLayers(scope) {
   showToast(scope === 'all'
     ? `Cleared ${n} layer${n === 1 ? '' : 's'}.`
     : `Cleared ${n} hidden layer${n === 1 ? '' : 's'}.`);
+}
+
+// Modal (not a native browser prompt) asking whether to clear all layers or just
+// the hidden ones. Picking a choice is itself the confirmation, so clearLayers()
+// runs without an extra window.confirm.
+function openClearDialog() {
+  const total = state.catalog.layers.length;
+  if (!total) { showToast('No layers to clear.'); return; }
+  const hidden = state.catalog.layers.filter(l => !state.activeLayerIds.has(l.id)).length;
+
+  const overlay = document.createElement('div');
+  overlay.className = 'savemap-overlay open';
+  overlay.innerHTML = `
+    <div class="savemap-modal clear-modal" role="dialog" aria-modal="true" aria-label="Clear layers">
+      <div class="savemap-header">
+        <span>Clear layers</span>
+        <button class="savemap-close" type="button" aria-label="Close">\u00d7</button>
+      </div>
+      <div class="savemap-body">
+        <p class="clear-msg">Remove layers from the map. This can\u2019t be undone.</p>
+        <div class="clear-choices">
+          <button class="savemap-btn savemap-primary" data-act="all" type="button">
+            Clear all <span class="clear-count">${total}</span>
+          </button>
+          <button class="savemap-btn savemap-secondary" data-act="hidden" type="button"${hidden ? '' : ' disabled'}>
+            Clear hidden <span class="clear-count">${hidden}</span>
+          </button>
+        </div>
+      </div>
+      <div class="savemap-footer">
+        <button class="savemap-btn savemap-cancel" type="button">Cancel</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+
+  const close = () => overlay.remove();
+  overlay.querySelector('.savemap-close').addEventListener('click', close);
+  overlay.querySelector('.savemap-cancel').addEventListener('click', close);
+  overlay.querySelector('[data-act="all"]').addEventListener('click', () => { close(); clearLayers('all'); });
+  const hiddenBtn = overlay.querySelector('[data-act="hidden"]');
+  if (hidden) hiddenBtn.addEventListener('click', () => { close(); clearLayers('hidden'); });
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+  overlay.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+  setTimeout(() => overlay.querySelector('[data-act="all"]').focus(), 30);
 }
 
 // Apply a new Reporting Level / Display / Year selection to a dynamic layer.

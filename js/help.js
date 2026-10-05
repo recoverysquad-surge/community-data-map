@@ -1,13 +1,15 @@
 // SAVI — searchable Help knowledge base.
 //
-// A modal with a live search box + topic list on the left and the selected
-// article on the right. The content below is an authored, static knowledge base
-// covering every utility in the Community Data Map. Because all article markup is
-// authored here (no user input is interpolated), it is rendered as trusted HTML.
+// Rendered into the floating "#panel-help" panel (so it can be moved, resized,
+// minimized, and toggled from the View menu like the other panels). A live search
+// box sits atop a topic list (left) + the selected article (right). The content
+// below is an authored, static knowledge base covering every utility in the
+// Community Data Map. Because all article markup is authored here (no user input is
+// interpolated), it is rendered as trusted HTML.
 //
-// Open from the footer's "Help" button or the toolbar/menu "Help…" item:
-//   openHelpModal()            — open on the first article
-//   openHelpModal('export')    — open with the search prefilled
+// Open from the footer's "Help" button, the toolbar View menu, or the panel toggle:
+//   openHelpPanel()            — show the panel on the first article
+//   openHelpPanel('export')    — show with the search prefilled
 
 function el(tag, cls, text) {
   const e = document.createElement(tag);
@@ -376,31 +378,20 @@ const INDEX = ARTICLES.map(a => ({
   hay: (a.title + ' ' + a.cat + ' ' + (a.keywords || '') + ' ' + plain(a.html)).toLowerCase()
 }));
 
-export function openHelpModal(initialQuery = '') {
-  const old = document.getElementById('help-overlay');
-  if (old) old.remove();
+// Build the search box + topic list + article pane into the panel body once.
+// Returns a small controller so the open function can drive search/focus.
+function buildHelp(root) {
+  root.innerHTML = '';
 
-  const overlay = el('div', 'cmp-overlay open');
-  overlay.id = 'help-overlay';
-  const modal = el('div', 'cmp-modal help-modal');
-  modal.setAttribute('role', 'dialog');
-  modal.setAttribute('aria-modal', 'true');
-  modal.setAttribute('aria-label', 'Help');
-
-  // Header bar: title + search + close.
-  const bar = el('div', 'cmp-bar');
-  bar.appendChild(el('span', 'cmp-title', 'Help'));
+  // Search box sits at the top of the panel body (the panel header holds the
+  // title + minimize/close, so search lives here).
+  const searchWrap = el('div', 'help-search-wrap');
   const search = el('input', 'help-search');
   search.type = 'search';
   search.placeholder = 'Search help\u2026';
   search.setAttribute('aria-label', 'Search help');
-  bar.appendChild(search);
-  bar.appendChild(el('span', 'cmp-spacer'));
-  const close = el('button', 'cmp-close', '\u00d7');
-  close.type = 'button';
-  close.setAttribute('aria-label', 'Close help');
-  bar.appendChild(close);
-  modal.appendChild(bar);
+  searchWrap.appendChild(search);
+  root.appendChild(searchWrap);
 
   // Body: topic list (left) + article (right).
   const body = el('div', 'help-body');
@@ -411,10 +402,7 @@ export function openHelpModal(initialQuery = '') {
   article.tabIndex = 0;
   body.appendChild(list);
   body.appendChild(article);
-  modal.appendChild(body);
-
-  overlay.appendChild(modal);
-  document.body.appendChild(overlay);
+  root.appendChild(body);
 
   let currentId = ARTICLES[0].id;
 
@@ -462,15 +450,31 @@ export function openHelpModal(initialQuery = '') {
   }
 
   search.addEventListener('input', () => renderList(search.value));
+  renderList('');
 
-  const dismiss = () => overlay.remove();
-  close.addEventListener('click', dismiss);
-  overlay.addEventListener('click', (e) => { if (e.target === overlay) dismiss(); });
-  document.addEventListener('keydown', function esc(e) {
-    if (e.key === 'Escape') { dismiss(); document.removeEventListener('keydown', esc); }
-  });
+  root._search = search;
+  root._render = renderList;
+}
 
-  search.value = initialQuery || '';
-  renderList(search.value);
-  setTimeout(() => search.focus(), 30);
+// Show the Help panel (building its content on first open) and focus the search.
+// Pass a query to prefill/filter the topic list.
+export function openHelpPanel(initialQuery = '') {
+  const panel = document.getElementById('panel-help');
+  if (!panel) return;
+  panel.classList.remove('hidden', 'collapsed');
+  // Restore any height that collapsing stashed, so re-opening isn't header-only.
+  if (panel.dataset.savedHeight) {
+    panel.style.height = panel.dataset.savedHeight;
+    delete panel.dataset.savedHeight;
+  }
+  const collapseBtn = panel.querySelector('.collapse-btn');
+  if (collapseBtn) { collapseBtn.textContent = '\u2013'; collapseBtn.setAttribute('aria-label', 'Collapse panel'); }
+
+  const root = panel.querySelector('#help-root');
+  if (root && !root._render) buildHelp(root);
+  if (root && root._render) {
+    root._search.value = initialQuery || '';
+    root._render(root._search.value);
+    setTimeout(() => root._search.focus(), 30);
+  }
 }

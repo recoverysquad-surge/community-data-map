@@ -1831,6 +1831,21 @@ html, body {
 .savemap-primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 .savemap-primary:hover { background: var(--accent-deep); border-color: var(--accent-text); }
 .savemap-secondary { margin-right: auto; }
+.savemap-btn[disabled] { opacity: 0.45; cursor: not-allowed; }
+
+/* Clear-layers choice modal: two equal-width action buttons (all / hidden). */
+.clear-modal .clear-msg { margin: 0; font-size: 13px; color: var(--muted); }
+.clear-choices { display: flex; gap: 10px; }
+.clear-choices .savemap-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.clear-choices .savemap-secondary { margin-right: 0; }
+.clear-count { opacity: 0.75; font-weight: 700; }
+
 .savemap-list { overflow-y: auto; padding: 8px 16px 16px; }
 .savemap-row {
   display: flex;
@@ -2466,12 +2481,41 @@ html, body {
 .maplibregl-ctrl-bottom-right,
 .maplibregl-ctrl-bottom-left { bottom: 30px; }
 
-/* ---------- Help modal (searchable knowledge base) ---------- */
-.help-modal { width: min(1000px, 94vw); height: min(760px, 88vh); }
+/* ---------- Help panel (searchable knowledge base) ---------- */
+/* Floating panel: horizontally centered near the top by default, then draggable /
+   resizable / minimizable like the other panels. Bigger than the data panels since
+   it holds a topic list + article. */
+.float-panel.float-help {
+  position: fixed;
+  top: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(880px, 94vw);
+  max-height: calc(100vh - 110px);
+  z-index: 40;
+}
+/* Apply the tall default height only when expanded, so minimizing (collapsing)
+   shrinks the panel to just its header instead of leaving a tall empty box. */
+.float-panel.float-help:not(.collapsed) { height: min(640px, calc(100vh - 150px)); }
+.float-help.dragging { transform: none; }
+/* The body is a flex column with no padding so the search bar + two-pane body
+   fill it; the list/article panes scroll internally. */
+#panel-help .float-panel-body {
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+#help-root { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.help-search-wrap {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel-bg);
+  flex-shrink: 0;
+}
 .help-search {
-  flex: 1;
-  max-width: 420px;
-  height: 30px;
+  width: 100%;
+  height: 32px;
   padding: 0 10px;
   border: 1px solid var(--border);
   border-radius: 6px;

@@ -712,7 +712,6 @@ export function buildToolbar(handlers) {
   menuAction(view.menu, 'Reset View', handlers.onResetView);
   menuAction(view.menu, 'Reset Layout', handlers.onResetLayout);
   menuSep(view.menu);
-  menuAction(view.menu, 'Help\u2026', handlers.onOpenHelp);
   menuAction(view.menu, 'Welcome Card\u2026', handlers.onOpenWelcome);
   // Re-sync checkmarks each time the menu opens (panels can be closed elsewhere).
   view.menu._onOpen = () => viewToggles.forEach(t => t.render());
@@ -866,7 +865,6 @@ export function buildToolbar(handlers) {
   menuAction(viewSub, 'Reset View', handlers.onResetView);
   menuAction(viewSub, 'Reset Layout', handlers.onResetLayout);
   menuSep(viewSub);
-  menuAction(viewSub, 'Help\u2026', handlers.onOpenHelp);
   menuAction(viewSub, 'Welcome Card\u2026', handlers.onOpenWelcome);
 
   // Map category (mirrors the Map menu).
