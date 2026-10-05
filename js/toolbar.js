@@ -387,7 +387,8 @@ const ICONS = {
   share: '<svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.5l6.8-4M8.6 13.5l6.8 4"/></svg>',
   menu: '<svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>',
   layers: '<svg viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 12 12 17 22 12"/><polyline points="2 17 12 22 22 17"/></svg>',
-  legend: '<svg viewBox="0 0 24 24"><rect x="3" y="4" width="6" height="6" rx="1"/><rect x="3" y="14" width="6" height="6" rx="1"/><path d="M12 7h9M12 17h9"/></svg>'
+  legend: '<svg viewBox="0 0 24 24"><rect x="3" y="4" width="6" height="6" rx="1"/><rect x="3" y="14" width="6" height="6" rx="1"/><path d="M12 7h9M12 17h9"/></svg>',
+  help: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 2.5-3 4"/><path d="M12 17h.01"/></svg>'
 };
 function icon(name) { return `<span class="tb-ico">${ICONS[name] || ''}</span>`; }
 
@@ -711,7 +712,8 @@ export function buildToolbar(handlers) {
   menuAction(view.menu, 'Reset View', handlers.onResetView);
   menuAction(view.menu, 'Reset Layout', handlers.onResetLayout);
   menuSep(view.menu);
-  menuAction(view.menu, 'Welcome Card\u2026', handlers.onOpenHelp);
+  menuAction(view.menu, 'Help\u2026', handlers.onOpenHelp);
+  menuAction(view.menu, 'Welcome Card\u2026', handlers.onOpenWelcome);
   // Re-sync checkmarks each time the menu opens (panels can be closed elsewhere).
   view.menu._onOpen = () => viewToggles.forEach(t => t.render());
   bar.appendChild(view.wrap);
@@ -864,7 +866,8 @@ export function buildToolbar(handlers) {
   menuAction(viewSub, 'Reset View', handlers.onResetView);
   menuAction(viewSub, 'Reset Layout', handlers.onResetLayout);
   menuSep(viewSub);
-  menuAction(viewSub, 'Welcome Card\u2026', handlers.onOpenHelp);
+  menuAction(viewSub, 'Help\u2026', handlers.onOpenHelp);
+  menuAction(viewSub, 'Welcome Card\u2026', handlers.onOpenWelcome);
 
   // Map category (mirrors the Map menu).
   const mapSub = menuGroup(burger.menu, 'Map');

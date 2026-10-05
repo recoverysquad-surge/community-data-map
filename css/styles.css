@@ -2412,6 +2412,134 @@ html, body {
   .prof-overlay .prof-filter { order: 4; flex: 1 1 100%; min-width: 0; width: 100%; }
 }
 
+/* ---------- Persistent footer (contributors + Help) ---------- */
+#app-footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 26px;
+  padding: 0 12px;
+  background: var(--header-bg);
+  color: var(--header-ink);
+  border-top: 2px solid var(--accent);
+  font-size: 11px;
+  line-height: 1;
+}
+#app-footer .footer-credit { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#app-footer a { color: var(--accent-bright); text-decoration: none; }
+#app-footer a:hover { text-decoration: underline; }
+#app-footer .footer-sep { opacity: 0.5; margin: 0 6px; }
+.footer-help {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 20px;
+  padding: 0 10px;
+  flex-shrink: 0;
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.footer-help:hover { background: var(--accent-bright); border-color: var(--accent-bright); }
+.footer-help-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--on-accent);
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 800;
+}
+/* Lift MapLibre's bottom controls/attribution above the footer bar. */
+.maplibregl-ctrl-bottom-right,
+.maplibregl-ctrl-bottom-left { bottom: 30px; }
+
+/* ---------- Help modal (searchable knowledge base) ---------- */
+.help-modal { width: min(1000px, 94vw); height: min(760px, 88vh); }
+.help-search {
+  flex: 1;
+  max-width: 420px;
+  height: 30px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--text);
+  font-size: 13px;
+}
+.help-body { flex: 1; display: flex; min-height: 0; }
+.help-list {
+  width: 260px;
+  flex-shrink: 0;
+  overflow-y: auto;
+  padding: 10px 8px;
+  border-right: 1px solid var(--border);
+  background: var(--panel-bg);
+}
+.help-cat {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+  margin: 12px 8px 4px;
+}
+.help-cat:first-child { margin-top: 2px; }
+.help-link {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 6px 8px;
+  margin: 1px 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text);
+  font-size: 13px;
+  cursor: pointer;
+}
+.help-link:hover { background: var(--accent-soft); }
+.help-link.active { background: var(--accent); color: var(--on-accent); font-weight: 600; }
+.help-empty { color: var(--muted); font-size: 13px; padding: 10px; }
+.help-article {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px 24px;
+  color: var(--text);
+  line-height: 1.55;
+}
+.help-article .help-h2 { margin: 0 0 12px; font-size: 20px; color: var(--ink); }
+.help-article h3 { margin: 18px 0 6px; font-size: 15px; }
+.help-article p { margin: 0 0 10px; font-size: 14px; }
+.help-article ul, .help-article ol { margin: 0 0 12px; padding-left: 22px; font-size: 14px; }
+.help-article li { margin: 3px 0; }
+.help-article a { color: var(--accent-text); }
+.help-article code, .help-article kbd {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+@media (max-width: 640px) {
+  .help-body { flex-direction: column; }
+  .help-list { width: auto; max-height: 38%; border-right: none; border-bottom: 1px solid var(--border); }
+  #app-footer .footer-credit { font-size: 10px; }
+}
+
 /* ---------- Respect reduced-motion preference ---------- */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

@@ -15,7 +15,7 @@
   <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
   <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 
-  <link href="css/styles.css?v=87" rel="stylesheet" />
+  <link href="css/styles.css?v=88" rel="stylesheet" />
 </head>
 <body>
   <div id="app">
@@ -80,8 +80,24 @@
         <div id="timeline-body"></div>
       </div>
     </section>
+
+    <!-- Persistent footer: contributor / data attribution + Help. -->
+    <footer id="app-footer" role="contentinfo">
+      <div class="footer-credit">
+        <strong>Community Data Map</strong>
+        <span class="footer-sep">·</span>
+        Data: <a href="https://classic.savi.org/savi" target="_blank" rel="noopener">SAVI</a>,
+        a program of the Polis Center at Indiana University Indianapolis
+        <span class="footer-sep">·</span>
+        Central Indiana
+      </div>
+      <button id="help-btn" class="footer-help" type="button" title="Open searchable help" aria-label="Open help">
+        <span class="footer-help-icon" aria-hidden="true">?</span>
+        <span class="footer-help-label">Help</span>
+      </button>
+    </footer>
   </div>
 
-  <script type="module" src="js/app.js?v=87"></script>
+  <script type="module" src="js/app.js?v=88"></script>
 </body>
 </html>
