@@ -1,23 +1,23 @@
 // SAVI Single-Map Interface — app entry point.
 // Initializes MapLibre, loads the layer catalog, and wires up UI.
 
-import { addLayer, updateLayerVisibility, updateLayerOpacity, bindPopups, reAddAllLayers, applyLayerOrder, setLayerColor, setLayerPattern, setLayerPatternOpacity, setLayerRamp, reclassify, removeLayer, applyIndicatorSelection, RAMPS } from './layers.js?v=94';
-import { buildLayerPanel, buildLegend, buildBasemapSwitcher, openCatalogModal } from './ui.js?v=94';
-import { makeDraggable, makeCollapsible, makeResizable, resetPanelLayout } from './panels.js?v=94';
+import { addLayer, updateLayerVisibility, updateLayerOpacity, bindPopups, reAddAllLayers, applyLayerOrder, setLayerColor, setLayerPattern, setLayerPatternOpacity, setLayerRamp, reclassify, removeLayer, applyIndicatorSelection, RAMPS } from './layers.js?v=95';
+import { buildLayerPanel, buildLegend, buildBasemapSwitcher, openCatalogModal } from './ui.js?v=95';
+import { makeDraggable, makeCollapsible, makeResizable, resetPanelLayout } from './panels.js?v=95';
 import { buildToolbar, showToast, exportImage, exportPdf, exportData, exportLayer, setSaveDirty,
   listSavedMaps, getSavedMap, saveNamedMap, deleteSavedMap,
   getActiveMapId, setActiveMapId, clearActiveMapId, withLoading,
-  openSaveMapDialog, openSavedMapsDialog, downloadBlob, stamp } from './toolbar.js?v=94';
-import { ANY, loadDataset, getCategories, getIndicator, getLevels, availableYears, resolveSelection, getValueMap, geometryFor } from './dataset.js?v=94';
-import { openTableModal } from './table.js?v=94';
-import { openProfileModal } from './profile.js?v=94';
-import { openSwipe, closeSwipe, isSwipeOpen } from './swipe.js?v=94';
-import { openMetadataModal } from './metadata.js?v=94';
-import { openWelcomeCard } from './welcome.js?v=94';
-import { openHelpPanel } from './help.js?v=94';
-import { openFeaturedGallery } from './featured.js?v=94';
-import { openImportPlaces } from './import_places.js?v=94';
-import { openImportGeojson } from './import_geojson.js?v=94';
+  openSaveMapDialog, openSavedMapsDialog, downloadBlob, stamp } from './toolbar.js?v=95';
+import { ANY, loadDataset, getCategories, getIndicator, getLevels, availableYears, resolveSelection, getValueMap, geometryFor } from './dataset.js?v=95';
+import { openTableModal } from './table.js?v=95';
+import { openProfileModal } from './profile.js?v=95';
+import { openSwipe, closeSwipe, isSwipeOpen } from './swipe.js?v=95';
+import { openMetadataModal } from './metadata.js?v=95';
+import { openWelcomeCard } from './welcome.js?v=95';
+import { openHelpPanel } from './help.js?v=95';
+import { openFeaturedGallery } from './featured.js?v=95';
+import { openImportPlaces } from './import_places.js?v=95';
+import { openImportGeojson } from './import_geojson.js?v=95';
 
 // ---- Basemap definitions (all key-free) ----
 export const BASEMAPS = {
@@ -246,6 +246,13 @@ async function init() {
   // deletes it from the layer panel.
   catalog.layers.forEach(l => { defaultStaticCfgs[l.id] = JSON.parse(JSON.stringify(l)); });
 
+  // The Sites / Programs & Agencies point layers are NOT part of the default map.
+  // They only enter the panel when the user explicitly adds one via Add Data, and
+  // once removed they must stay gone (no auto-reappear on New Map / reload). Their
+  // pristine clones live in defaultStaticCfgs above, so Add Data + activateStaticLayer
+  // can re-create them on demand; saved maps re-create any they used (restore block).
+  catalog.layers = catalog.layers.filter(l => !(l.category === 'sites' && l.geometry === 'point'));
+
   // Merge dataset categories so dynamic layers get a category tag in the panel.
   getCategories().forEach(c => {
     state.catIdByLabel[c.label] = c.id;
@@ -320,6 +327,15 @@ async function init() {
       catalog.layers.push(cfg);
       const seq = Number((/imported_(\d+)/.exec(id) || [])[1] || 0);
       if (state.importedSeq < seq) state.importedSeq = seq;
+    }
+    // Re-create any Sites point layers the saved map used. They're no longer seeded
+    // into the default catalog, so restore them from their pristine clones; otherwise
+    // applySavedToCatalog would drop their ids (findLayer wouldn't resolve them).
+    const savedLayerIds = new Set([...(saved.order || []), ...(saved.active || [])]);
+    for (const id of savedLayerIds) {
+      if (!findLayer(id) && defaultStaticCfgs[id] && defaultStaticCfgs[id].category === 'sites') {
+        catalog.layers.push(JSON.parse(JSON.stringify(defaultStaticCfgs[id])));
+      }
     }
     applySavedToCatalog(saved);
   }
@@ -2034,8 +2050,9 @@ function removeBoundaryLayer(key) {
 // its ids are prefixed "bnd:" so the handlers route to the boundary machinery.
 function openAddData() {
   const boundaryItems = BOUNDARY_TYPES.map(t => ({ id: 'bnd:' + t.key, label: t.label, path: 'Boundaries' }));
-  // Point datasets (Sites, Programs & Agencies) are static catalog layers, listed
-  // from their pristine clones so a deleted one still reappears here to re-add.
+  // Point datasets (Sites, Programs & Agencies) are on-demand static layers, listed
+  // from their pristine clones. Adding re-creates one; removing deletes it outright
+  // so it doesn't linger in the panel or auto-reappear on New Map / reload.
   const siteItems = Object.values(defaultStaticCfgs)
     .filter(l => l.category === 'sites' && l.geometry === 'point')
     .map(l => ({ id: 'ste:' + l.id, label: l.label, path: 'Sites, Programs & Agencies' }));
@@ -2046,9 +2063,9 @@ function openAddData() {
     onAdd: (id, geo) => (isBnd(id) ? addBoundaryLayer(id.slice(4))
       : isSte(id) ? activateStaticLayer(id.slice(4)) : addIndicatorLayer(id, geo)),
     onRemove: id => (isBnd(id) ? removeBoundaryLayer(id.slice(4))
-      : isSte(id) ? deactivateStaticLayer(id.slice(4)) : removeIndicatorLayer(id)),
+      : isSte(id) ? deleteLayer(id.slice(4)) : removeIndicatorLayer(id)),
     isAdded: id => (isBnd(id) ? isBoundaryAdded(id.slice(4))
-      : isSte(id) ? state.activeLayerIds.has(id.slice(4)) : isIndicatorAdded(id))
+      : isSte(id) ? !!findLayer(id.slice(4)) : isIndicatorAdded(id))
   });
 }
 
