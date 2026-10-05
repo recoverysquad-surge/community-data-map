@@ -106,11 +106,13 @@ const ARTICLES = [
     keywords: 'transparent no data missing blank uncolored gray grey empty not reported',
     html: `
       <p>A geography that does <strong>not report a value</strong> for the chosen
-      indicator/level/display/year is drawn with a <strong>transparent fill</strong>
-      &mdash; it has no color at all. Only geographies with reported data are shaded.</p>
+      indicator/level/display/year is drawn completely <strong>transparent</strong>
+      &mdash; both its fill and its outline are hidden, so it disappears from the data
+      layer entirely. Only geographies with reported data are shaded.</p>
       <p>This is intentional: it keeps &ldquo;no data&rdquo; visually distinct from a
-      genuine low value (such as 0). The boundary outline may still be visible so you
-      can see the area exists.</p>`
+      genuine low value (such as 0). If you want to still see every area&rsquo;s edges,
+      add the matching <strong>Boundary overlay</strong> (Add Data &rarr; Boundaries),
+      whose outlines always show.</p>`
   },
   {
     id: 'layers-panel',
