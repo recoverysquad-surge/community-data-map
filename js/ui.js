@@ -1,9 +1,9 @@
 // SAVI — UI builders: flat draggable layer list, legend, basemap switcher.
 
-import { accentColor, RAMPS } from './layers.js?v=83';
+import { accentColor, RAMPS } from './layers.js?v=84';
 import { ANY, availableLevels, availableDisplays, availableYears,
-  searchIndicators } from './dataset.js?v=83';
-import { makeDraggable } from './panels.js?v=83';
+  searchIndicators, getLevels } from './dataset.js?v=84';
+import { makeDraggable } from './panels.js?v=84';
 
 // Normalize any hex color to #rrggbb (input[type=color] requires the 6-digit form).
 function toHex(c) {
@@ -750,6 +750,21 @@ export function openCatalogModal(handlers) {
   search.placeholder = 'Search indicators\u2026';
   search.setAttribute('aria-label', 'Search indicators');
 
+  // Geography filter: narrow categories/indicators to those with data at a chosen level.
+  const geoSel = document.createElement('select');
+  geoSel.className = 'catalog-geo';
+  geoSel.setAttribute('aria-label', 'Filter by geography');
+  const anyOpt = document.createElement('option');
+  anyOpt.value = ANY;
+  anyOpt.textContent = 'Any geography';
+  geoSel.appendChild(anyOpt);
+  getLevels().forEach(l => {
+    const o = document.createElement('option');
+    o.value = l;
+    o.textContent = l;
+    geoSel.appendChild(o);
+  });
+
   const body = document.createElement('div');
   body.className = 'catalog-body';
 
@@ -761,6 +776,7 @@ export function openCatalogModal(handlers) {
 
   modal.appendChild(header);
   modal.appendChild(search);
+  modal.appendChild(geoSel);
   modal.appendChild(body);
   modal.appendChild(foot);
   overlay.appendChild(modal);
@@ -768,6 +784,7 @@ export function openCatalogModal(handlers) {
 
   overlay._handlers = handlers;
   overlay._nav = [];   // breadcrumb path: [] = top (categories), then subcategory segments
+  overlay._geoFilter = ANY;
 
   // Render EITHER flat search results (when the search box has text) OR the
   // breadcrumb drill-down for the current folder (overlay._nav).
@@ -775,13 +792,14 @@ export function openCatalogModal(handlers) {
     body.innerHTML = '';
     const h = overlay._handlers;
     const q = search.value.trim();
-    if (q) { renderSearch(body, q, h); return; }
+    if (q) { renderSearch(body, q, h, overlay._geoFilter); return; }
     renderBrowse(body, overlay, render, h);
   };
   overlay._render = render;
   render();
 
   search.addEventListener('input', render);
+  geoSel.addEventListener('change', () => { overlay._geoFilter = geoSel.value; render(); });
   const dismiss = () => overlay.classList.remove('open');
   close.addEventListener('click', dismiss);
   overlay.addEventListener('click', (e) => { if (e.target === overlay) dismiss(); });
@@ -795,12 +813,18 @@ function pathSegs(ind) {
     .split('/').map(s => s.trim()).filter(Boolean);
 }
 
+// True if an indicator has data at the chosen geography (ANY = no filter). Non-indicator
+// extra items (boundaries/sites) carry no .availability, so they drop under a specific level.
+function availAt(ind, geoFilter) {
+  return geoFilter === ANY || !!(ind.availability && ind.availability[geoFilter]);
+}
+
 // Flat search results (search box has text): one list, each row shows its full path.
-function renderSearch(body, query, handlers) {
+function renderSearch(body, query, handlers, geoFilter = ANY) {
   const q = String(query || '').toLowerCase();
   const extra = (handlers.extraItems || []).filter(it =>
     it.label.toLowerCase().includes(q) || String(it.path || '').toLowerCase().includes(q));
-  const matches = extra.concat(searchIndicators(query));
+  const matches = extra.concat(searchIndicators(query)).filter(ind => availAt(ind, geoFilter));
   if (!matches.length) {
     body.innerHTML = '<p class="catalog-empty">No indicators match your search.</p>';
     return;
@@ -823,6 +847,7 @@ function renderSearch(body, query, handlers) {
 // at this level. Clicking a folder descends; clicking a crumb jumps back up.
 function renderBrowse(body, overlay, render, handlers) {
   const nav = overlay._nav;
+  const geoFilter = overlay._geoFilter || ANY;
 
   // Breadcrumb bar: Home > seg1 > seg2 ...
   const crumbs = document.createElement('div');
@@ -851,6 +876,7 @@ function renderBrowse(body, overlay, render, handlers) {
   const folders = new Map();   // folder name -> count of indicators beneath it
   const items = [];
   for (const ind of (handlers.extraItems || []).concat(searchIndicators(''))) {
+    if (!availAt(ind, geoFilter)) continue;
     const segs = pathSegs(ind);
     if (segs.length < nav.length) continue;
     let under = true;

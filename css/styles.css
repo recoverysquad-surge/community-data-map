@@ -1534,6 +1534,16 @@ html, body {
   border-radius: 6px;
 }
 .catalog-search:focus { outline: none; border-color: var(--accent); }
+.catalog-geo {
+  margin: 0 16px 6px;
+  padding: 8px 10px;
+  font-size: 13px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: inherit;
+}
+.catalog-geo:focus { outline: none; border-color: var(--accent); }
 .catalog-body {
   flex: 1;
   min-height: 0;

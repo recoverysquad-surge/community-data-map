@@ -8,7 +8,7 @@
 //     highlightIds:Set<string>, state:M, rerender:fn }
 //   values is a { geoId -> formatted string } map for that column's display+year.
 
-import { getValueMap, availableYears } from './dataset.js?v=83';
+import { getValueMap, availableYears } from './dataset.js?v=84';
 
 const NS = 'http://www.w3.org/2000/svg';
 
