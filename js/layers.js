@@ -1,6 +1,6 @@
 // SAVI — layer management: add/remove/style layers from config + popups.
 
-import { makeDraggable } from './panels.js?v=85';
+import { makeDraggable } from './panels.js?v=86';
 
 const loadedSources = new Set();
 
@@ -92,9 +92,11 @@ function circlePaint(cfg) {
 }
 
 function choroplethExpr(ch) {
-  const expr = ['interpolate', ['linear'], ['to-number', ['get', ch.field]]];
-  ch.stops.forEach(s => { expr.push(s.value, s.color); });
-  return expr;
+  const interp = ['interpolate', ['linear'], ['to-number', ['get', ch.field]]];
+  ch.stops.forEach(s => { interp.push(s.value, s.color); });
+  // No-data geographies (field value is null) render fully transparent; only
+  // geographies that actually report a value get a choropleth color.
+  return ['case', ['==', ['get', ch.field], null], 'rgba(0,0,0,0)', interp];
 }
 
 function categoryColorExpr(cs) {

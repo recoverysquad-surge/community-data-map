@@ -1,22 +1,22 @@
 // SAVI Single-Map Interface — app entry point.
 // Initializes MapLibre, loads the layer catalog, and wires up UI.
 
-import { addLayer, updateLayerVisibility, updateLayerOpacity, bindPopups, reAddAllLayers, applyLayerOrder, setLayerColor, setLayerPattern, setLayerPatternOpacity, setLayerRamp, reclassify, removeLayer, applyIndicatorSelection, RAMPS } from './layers.js?v=85';
-import { buildLayerPanel, buildLegend, buildBasemapSwitcher, openCatalogModal } from './ui.js?v=85';
-import { makeDraggable, makeCollapsible, makeResizable, resetPanelLayout } from './panels.js?v=85';
+import { addLayer, updateLayerVisibility, updateLayerOpacity, bindPopups, reAddAllLayers, applyLayerOrder, setLayerColor, setLayerPattern, setLayerPatternOpacity, setLayerRamp, reclassify, removeLayer, applyIndicatorSelection, RAMPS } from './layers.js?v=86';
+import { buildLayerPanel, buildLegend, buildBasemapSwitcher, openCatalogModal } from './ui.js?v=86';
+import { makeDraggable, makeCollapsible, makeResizable, resetPanelLayout } from './panels.js?v=86';
 import { buildToolbar, showToast, exportImage, exportPdf, exportData, exportLayer, setSaveDirty,
   listSavedMaps, getSavedMap, saveNamedMap, deleteSavedMap,
   getActiveMapId, setActiveMapId, clearActiveMapId, withLoading,
-  openSaveMapDialog, openSavedMapsDialog, downloadBlob, stamp } from './toolbar.js?v=85';
-import { ANY, loadDataset, getCategories, getIndicator, getLevels, availableYears, resolveSelection, getValueMap, geometryFor } from './dataset.js?v=85';
-import { openTableModal } from './table.js?v=85';
-import { openProfileModal } from './profile.js?v=85';
-import { openSwipe, closeSwipe, isSwipeOpen } from './swipe.js?v=85';
-import { openMetadataModal } from './metadata.js?v=85';
-import { openWelcomeCard } from './welcome.js?v=85';
-import { openFeaturedGallery } from './featured.js?v=85';
-import { openImportPlaces } from './import_places.js?v=85';
-import { openImportGeojson } from './import_geojson.js?v=85';
+  openSaveMapDialog, openSavedMapsDialog, downloadBlob, stamp } from './toolbar.js?v=86';
+import { ANY, loadDataset, getCategories, getIndicator, getLevels, availableYears, resolveSelection, getValueMap, geometryFor } from './dataset.js?v=86';
+import { openTableModal } from './table.js?v=86';
+import { openProfileModal } from './profile.js?v=86';
+import { openSwipe, closeSwipe, isSwipeOpen } from './swipe.js?v=86';
+import { openMetadataModal } from './metadata.js?v=86';
+import { openWelcomeCard } from './welcome.js?v=86';
+import { openFeaturedGallery } from './featured.js?v=86';
+import { openImportPlaces } from './import_places.js?v=86';
+import { openImportGeojson } from './import_geojson.js?v=86';
 
 // ---- Basemap definitions (all key-free) ----
 export const BASEMAPS = {
@@ -500,6 +500,10 @@ async function init() {
       if (state.autosaveTimer) { clearTimeout(state.autosaveTimer); state.autosaveTimer = null; }
       clearActiveMapId();
       state.activeMapId = null;
+      // Strip any shareable permalink (#m=...) from the URL. A permalink in the hash
+      // survives location.reload() and takes precedence over the fresh-map flag in
+      // init(), so without this the "new" map would restore the shared/old layers.
+      try { history.replaceState(null, '', location.pathname + location.search); } catch { /* ignore */ }
       // Signal init() to skip the "restore last saved map" fallback on this reload.
       try { sessionStorage.setItem('savi.newMap', '1'); } catch { /* ignore */ }
       showToast('Starting a new map\u2026');
