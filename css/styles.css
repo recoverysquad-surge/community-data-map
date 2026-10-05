@@ -774,20 +774,10 @@ html, body {
 .layer-chip.dot { width: 14px; height: 14px; border-radius: 50%; }
 .layer-chip.bar { height: 5px; border-radius: 2px; }
 
-.opts-btn {
-  flex-shrink: 0;
-  width: 22px;
-  height: 22px;
-  line-height: 1;
-  font-size: 13px;
-  border: 1px solid var(--border);
-  border-radius: 5px;
-  background: var(--bg);
-  color: var(--muted);
-  cursor: pointer;
-}
-.opts-btn:hover { border-color: var(--accent); color: var(--accent-text); }
-.layer-item.show-opts .opts-btn { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+/* The style-preview chip doubles as the button that opens the Style popup. */
+.layer-chip.chip-btn { cursor: pointer; }
+.layer-chip.chip-btn:hover { outline: 2px solid var(--accent); outline-offset: 1px; }
+.layer-chip.chip-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
 /* ---------- Style options (color + ramp + pattern) ---------- */
 .style-row {
@@ -797,10 +787,40 @@ html, body {
   margin-top: 8px;
   padding-left: 22px;
 }
-.layer-item.show-opts .style-row { display: flex; }
-/* Style options now live in a floating popup (gear button) — show them there. */
+/* Style options live in a floating popup (opened via the chip) — show them there. */
 .style-popup .style-row { display: flex; margin-top: 0; padding-left: 0; }
 .style-popup .sel-popup-body { min-width: 280px; }
+
+/* Rename + download actions at the top of the Style popup. */
+.style-popup-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.style-rename { flex: 1 1 160px; }
+.style-rename-input {
+  flex: 1;
+  min-width: 120px;
+  height: 26px;
+  padding: 2px 8px;
+  font-size: 12px;
+}
+.style-dl { gap: 8px; }
+.style-dl-btn {
+  height: 26px;
+  padding: 0 10px;
+  font-size: 12px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+}
+.style-dl-btn:hover { border-color: var(--accent); color: var(--accent-text); }
 .style-ctl {
   display: flex;
   align-items: center;
@@ -1255,16 +1275,6 @@ html, body {
 .maplibregl-user-location-dot::after { border: 2px solid var(--accent); }
 
 /* Layer rename (panel) */
-.ren-btn {
-  border: none;
-  background: transparent;
-  color: #9a9a9a;
-  cursor: pointer;
-  font-size: 13px;
-  padding: 2px 4px;
-  line-height: 1;
-}
-.ren-btn:hover { color: var(--accent-text); }
 .layer-rename-input {
   font-size: 13px;
   padding: 2px 5px;
@@ -1429,20 +1439,6 @@ html, body {
   cursor: pointer;
 }
 .bulk-btn:hover { border-color: var(--accent); color: var(--accent-text); }
-
-.dl-btn {
-  flex-shrink: 0;
-  width: 22px;
-  height: 22px;
-  line-height: 1;
-  font-size: 12px;
-  border: 1px solid var(--border);
-  border-radius: 5px;
-  background: var(--bg);
-  color: var(--muted);
-  cursor: pointer;
-}
-.dl-btn:hover { border-color: var(--accent); color: var(--accent-text); }
 
 /* ---------- Movable selector popup ---------- */
 .sel-popup {

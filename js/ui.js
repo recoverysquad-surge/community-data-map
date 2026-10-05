@@ -1,9 +1,9 @@
 // SAVI — UI builders: flat draggable layer list, legend, basemap switcher.
 
-import { accentColor, RAMPS } from './layers.js?v=93';
+import { accentColor, RAMPS } from './layers.js?v=94';
 import { ANY, availableLevels, availableDisplays, availableYears,
-  searchIndicators, getLevels } from './dataset.js?v=93';
-import { makeDraggable } from './panels.js?v=93';
+  searchIndicators, getLevels } from './dataset.js?v=94';
+import { makeDraggable } from './panels.js?v=94';
 
 // Normalize any hex color to #rrggbb (input[type=color] requires the 6-digit form).
 function toHex(c) {
@@ -205,7 +205,18 @@ function buildLayerItem(layer, categoryLabel, handlers, panel) {
   cb.id = `chk-${layer.id}`;
   cb.checked = isActive;
 
+  // The style-preview chip doubles as the button that opens the Style popup
+  // (which also hosts rename + download). Keyboard-accessible.
   const chip = layerChip(layer);
+  chip.classList.add('chip-btn');
+  chip.setAttribute('role', 'button');
+  chip.setAttribute('tabindex', '0');
+  chip.title = 'Style, rename & download';
+  chip.setAttribute('aria-label', `Style, rename & download ${layer.label}`);
+  chip.addEventListener('click', () => openStylePopup(layer, handlers, chip, styleRow));
+  chip.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openStylePopup(layer, handlers, chip, styleRow); }
+  });
 
   const label = document.createElement('label');
   label.htmlFor = cb.id;
@@ -237,22 +248,6 @@ function buildLayerItem(layer, categoryLabel, handlers, panel) {
   labelWrap.appendChild(label);
 
   const isIndicator = layer.kind === 'indicator' && !!layer.indicatorId;
-
-  const ren = document.createElement('button');
-  ren.type = 'button';
-  ren.className = 'ren-btn';
-  ren.title = 'Rename this layer';
-  ren.setAttribute('aria-label', `Rename ${layer.label}`);
-  ren.textContent = '\u270e';
-  ren.addEventListener('click', () => beginRename());
-
-  const gear = document.createElement('button');
-  gear.type = 'button';
-  gear.className = 'opts-btn';
-  gear.title = 'Style options';
-  gear.setAttribute('aria-label', `Style options for ${layer.label}`);
-  gear.textContent = '⚙';
-  gear.addEventListener('click', () => openStylePopup(layer, handlers, gear, styleRow));
 
   const del = document.createElement('button');
   del.type = 'button';
@@ -302,23 +297,7 @@ function buildLayerItem(layer, categoryLabel, handlers, panel) {
     row.appendChild(bulk);
   }
 
-  // Download this layer's data (GeoJSON for all; pins also offer CSV).
-  const dl = document.createElement('button');
-  dl.type = 'button';
-  dl.className = 'dl-btn';
-  dl.title = layer.kind === 'pins'
-    ? 'Download this layer (GeoJSON; Shift-click for CSV)'
-    : 'Download this layer as GeoJSON';
-  dl.setAttribute('aria-label', `Download ${layer.label}`);
-  dl.textContent = '\u2913';
-  dl.addEventListener('click', (e) => {
-    const fmt = (layer.kind === 'pins' && e.shiftKey) ? 'csv' : 'geojson';
-    handlers.onDownloadLayer && handlers.onDownloadLayer(layer.id, fmt);
-  });
-  row.appendChild(dl);
-
-  row.appendChild(ren);
-  row.appendChild(gear);
+  // Rename + download now live inside the Style popup (opened via the chip).
   row.appendChild(del);
   item.appendChild(row);
 
@@ -343,7 +322,7 @@ function buildLayerItem(layer, categoryLabel, handlers, panel) {
   opRow.appendChild(opVal);
   item.appendChild(opRow);
 
-  // ---- Style options (color + ramp + fill pattern), revealed by the gear button ----
+  // ---- Style options (color + ramp + fill pattern), shown in the chip popup ----
   const styleRow = document.createElement('div');
   styleRow.className = 'style-row';
 
@@ -460,7 +439,7 @@ function buildLayerItem(layer, categoryLabel, handlers, panel) {
     addCtl('Pattern opacity', patWrap);
   }
 
-  // styleRow lives in a floating popup (opened by the gear button), not inline.
+  // styleRow lives in a floating popup (opened by clicking the chip), not inline.
 
   cb.addEventListener('change', () => handlers.onToggle(layer.id, cb.checked));
   slider.addEventListener('input', () => {
@@ -632,9 +611,10 @@ function openSelectorPopup(layer, handlers, anchorEl) {
   makeDraggable(pop, header);
 }
 
-// Floating, draggable Style-options popup (color / ramp / pattern) opened by the
-// gear button — consistent with the "adjust variables" (sel) popup. The styleRow
-// element is built once per layer row and re-parented into the popup on open.
+// Floating, draggable Style popup (rename + download + color / ramp / pattern)
+// opened by clicking the layer's style-preview chip — consistent with the
+// "adjust variables" (sel) popup. The styleRow element is built once per layer
+// row and re-parented into the popup on open.
 function openStylePopup(layer, handlers, anchorEl, styleRow) {
   const domId = `style-popup-${layer.id}`;
   const existing = document.getElementById(domId);
@@ -665,6 +645,65 @@ function openStylePopup(layer, handlers, anchorEl, styleRow) {
 
   const body = document.createElement('div');
   body.className = 'sel-popup-body';
+
+  // ---- Rename + download, incorporated into this popup ----
+  const actions = document.createElement('div');
+  actions.className = 'style-popup-actions';
+
+  const renameGroup = document.createElement('div');
+  renameGroup.className = 'style-ctl style-rename';
+  const renameLbl = document.createElement('label');
+  renameLbl.textContent = 'Name';
+  const renameInput = document.createElement('input');
+  renameInput.type = 'text';
+  renameInput.className = 'layer-select style-rename-input';
+  renameInput.value = layer.label;
+  renameInput.setAttribute('aria-label', 'Rename this layer');
+  const commitRename = () => {
+    const v = renameInput.value.trim();
+    if (v && v !== layer.label && handlers.onRename) {
+      handlers.onRename(layer.id, v);
+      layer.label = v;
+      title.textContent = v;
+    }
+  };
+  renameInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); commitRename(); renameInput.blur(); }
+  });
+  renameInput.addEventListener('blur', commitRename);
+  renameGroup.appendChild(renameLbl);
+  renameGroup.appendChild(renameInput);
+
+  const dlGroup = document.createElement('div');
+  dlGroup.className = 'style-ctl style-dl';
+  const dlLbl = document.createElement('label');
+  dlLbl.textContent = 'Download';
+  const dlBtn = document.createElement('button');
+  dlBtn.type = 'button';
+  dlBtn.className = 'style-dl-btn';
+  dlBtn.textContent = '\u2913 GeoJSON';
+  dlBtn.title = layer.kind === 'pins'
+    ? 'Download this layer (GeoJSON; Shift-click for CSV)'
+    : 'Download this layer as GeoJSON';
+  dlBtn.addEventListener('click', (e) => {
+    const fmt = (layer.kind === 'pins' && e.shiftKey) ? 'csv' : 'geojson';
+    handlers.onDownloadLayer && handlers.onDownloadLayer(layer.id, fmt);
+  });
+  dlGroup.appendChild(dlLbl);
+  dlGroup.appendChild(dlBtn);
+  if (layer.kind === 'pins') {
+    const csvBtn = document.createElement('button');
+    csvBtn.type = 'button';
+    csvBtn.className = 'style-dl-btn';
+    csvBtn.textContent = '\u2913 CSV';
+    csvBtn.title = 'Download this layer as CSV';
+    csvBtn.addEventListener('click', () => handlers.onDownloadLayer && handlers.onDownloadLayer(layer.id, 'csv'));
+    dlGroup.appendChild(csvBtn);
+  }
+
+  actions.appendChild(renameGroup);
+  actions.appendChild(dlGroup);
+  body.appendChild(actions);
   body.appendChild(styleRow);   // re-parent the persistent style controls
 
   pop.appendChild(header);
