@@ -280,7 +280,7 @@ export function exportPdf(map, { title, legendHtml }) {
         @media print { .no-print { display: none; } }
       </style></head><body>
       <h1>${title}</h1>
-      <p class="meta">Community Data Map — generated ${new Date().toLocaleString()}<br>Data source: <a href="https://classic.savi.org/savi">SAVI</a> (Social Assets &amp; Vulnerabilities Indicators), a program of the Polis Center at Indiana University Indianapolis — https://classic.savi.org/savi</p>
+      <p class="meta">Community Data Map — generated ${new Date().toLocaleString()}<br>Data shared by <a href="https://classic.savi.org/savi">SAVI</a> (Social Assets &amp; Vulnerabilities Indicators), a program of the Polis Center at Indiana University Indianapolis — https://classic.savi.org/savi</p>
       <img src="${dataUrl}" alt="Map export" />
       <div class="legend">${legendHtml || ''}</div>
       <script>window.onload = function(){ setTimeout(function(){ window.print(); }, 250); };<\/script>

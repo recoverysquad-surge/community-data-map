@@ -32,7 +32,7 @@ const ARTICLES = [
     keywords: 'about savi polis indiana overview intro welcome what',
     html: `
       <p>The <strong>Community Data Map</strong> is an interactive map of community
-      indicators for Central Indiana. It turns data harvested from
+      indicators for Central Indiana. It turns data shared by
       <a href="https://classic.savi.org/savi" target="_blank" rel="noopener">SAVI</a>
       (Social Assets &amp; Vulnerabilities Indicators, a program of the Polis Center
       at Indiana University Indianapolis) into choropleth (shaded) maps you can
