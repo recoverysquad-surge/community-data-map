@@ -3,7 +3,7 @@
 // classic site's CommunityProfiles.aspx fact sheet, but built from the harvested shards.
 
 import { loadDataset, getCategories, getIndicators, getLevels, getIndicator,
-  availableDisplays, resolveSelection, getValueMap } from './dataset.js?v=103';
+  availableDisplays, resolveSelection, getValueMap } from './dataset.js?v=104';
 
 // ---- module state (one live profile at a time) ----
 const P = {
@@ -257,6 +257,11 @@ export async function openProfileModal(deps, preselect) {
   const spacer = el('div', 'cmp-spacer');
   bar.appendChild(spacer);
 
+  const minBtn = el('button', 'cmp-close cmp-min', '\u2212');
+  minBtn.title = 'Minimize';
+  minBtn.setAttribute('aria-label', 'Minimize');
+  bar.appendChild(minBtn);
+
   const close = el('button', 'cmp-close', '\u00d7');
   close.title = 'Close';
   bar.appendChild(close);
@@ -303,6 +308,31 @@ export async function openProfileModal(deps, preselect) {
   });
 
   filter.addEventListener('input', () => { P.query = filter.value; renderFacts(container); });
+
+  // Drag-to-move: grab the header bar (but not its interactive controls) and offset
+  // the modal via transform, which composes cleanly with the flex centering + resize.
+  let dragX = 0, dragY = 0;
+  const applyDrag = () => { modal.style.transform = `translate(${dragX}px, ${dragY}px)`; };
+  bar.addEventListener('mousedown', (e) => {
+    if (e.button !== 0 || e.target.closest('button, select, input, label, .cmp-menu-wrap')) return;
+    e.preventDefault();
+    const sx = e.clientX, sy = e.clientY, ox = dragX, oy = dragY;
+    const move = (ev) => { dragX = ox + (ev.clientX - sx); dragY = oy + (ev.clientY - sy); applyDrag(); };
+    const up = () => { document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up); };
+    document.addEventListener('mousemove', move);
+    document.addEventListener('mouseup', up);
+  });
+
+  // Minimize collapses the modal to its header bar and pins it bottom-right, letting
+  // the backdrop pass clicks through to the map. The button flips to a "+" to restore.
+  const setMinimized = (on) => {
+    overlay.classList.toggle('minimized', on);
+    modal.classList.toggle('minimized', on);
+    minBtn.textContent = on ? '+' : '\u2212';
+    minBtn.title = on ? 'Restore' : 'Minimize';
+    minBtn.setAttribute('aria-label', minBtn.title);
+  };
+  minBtn.addEventListener('click', () => setMinimized(!modal.classList.contains('minimized')));
 
   const dismiss = () => overlay.classList.remove('open');
   close.addEventListener('click', dismiss);

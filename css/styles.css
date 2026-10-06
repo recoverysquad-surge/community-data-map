@@ -2014,6 +2014,7 @@ html, body {
 .cmp-modal.minimized .cmp-toggle,
 .cmp-modal.minimized .cmp-check,
 .cmp-modal.minimized .cmp-btn,
+.cmp-modal.minimized .prof-filter,
 .cmp-modal.minimized .cmp-menu-wrap { display: none; }
 
 /* ---- Welcome card + Featured Maps gallery (compact, auto-height modals) ---- */
