@@ -1996,11 +1996,16 @@ html, body {
 }
 .cmp-overlay.minimized .cmp-modal { pointer-events: auto; }
 .cmp-modal.minimized {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  margin: 0;
   width: auto !important;
   min-width: 320px;
   height: auto !important;
   min-height: 0;
-  margin: 0 16px 16px 0;
+  /* Cancel any drag transform so a dragged window can't dock off-screen. */
+  transform: none !important;
   resize: none;
 }
 .cmp-modal.minimized .cmp-table-wrap { display: none; }
