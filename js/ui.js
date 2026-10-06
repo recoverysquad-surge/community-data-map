@@ -1,9 +1,9 @@
 // SAVI — UI builders: flat draggable layer list, legend, basemap switcher.
 
-import { accentColor, RAMPS } from './layers.js?v=96';
+import { accentColor, RAMPS } from './layers.js?v=97';
 import { ANY, availableLevels, availableDisplays, availableYears,
-  searchIndicators, getLevels } from './dataset.js?v=96';
-import { makeDraggable } from './panels.js?v=96';
+  searchIndicators, getLevels } from './dataset.js?v=97';
+import { makeDraggable } from './panels.js?v=97';
 
 // Normalize any hex color to #rrggbb (input[type=color] requires the 6-digit form).
 function toHex(c) {
@@ -1168,7 +1168,7 @@ function legendCredit() {
 }
 
 // Build the basemap switcher buttons.
-export function buildBasemapSwitcher(basemaps, current, onSwitch) {
+export function buildBasemapSwitcher(basemaps, current, onSwitch, opts = {}) {
   const container = document.getElementById('basemap-switcher');
   container.innerHTML = '';
   Object.entries(basemaps).forEach(([key, bm]) => {
@@ -1179,4 +1179,20 @@ export function buildBasemapSwitcher(basemaps, current, onSwitch) {
     btn.addEventListener('click', () => onSwitch(key));
     container.appendChild(btn);
   });
+
+  // 3D buildings overlay toggle (rides on top of any basemap; needs zoom \u2265 14 to appear).
+  if (opts.onToggle3D) {
+    const row = document.createElement('label');
+    row.className = 'basemap-3d-toggle';
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.id = 'buildings3d-toggle';
+    cb.checked = !!(opts.getBuildings3d && opts.getBuildings3d());
+    cb.addEventListener('change', () => opts.onToggle3D(cb.checked));
+    const txt = document.createElement('span');
+    txt.textContent = '3D buildings';
+    row.appendChild(cb);
+    row.appendChild(txt);
+    container.appendChild(row);
+  }
 }

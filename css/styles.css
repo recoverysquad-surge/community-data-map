@@ -685,7 +685,19 @@ html, body {
 .basemap-switcher {
   display: flex;
   gap: 6px;
+  flex-wrap: wrap;
 }
+.basemap-3d-toggle {
+  flex-basis: 100%;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--text);
+  cursor: pointer;
+}
+.basemap-3d-toggle input { cursor: pointer; }
 .basemap-btn {
   flex: 1;
   padding: 7px 4px;

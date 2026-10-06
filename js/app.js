@@ -1,23 +1,23 @@
 // SAVI Single-Map Interface — app entry point.
 // Initializes MapLibre, loads the layer catalog, and wires up UI.
 
-import { addLayer, updateLayerVisibility, updateLayerOpacity, bindPopups, reAddAllLayers, applyLayerOrder, setLayerColor, setLayerPattern, setLayerPatternOpacity, setLayerRamp, reclassify, removeLayer, applyIndicatorSelection, RAMPS } from './layers.js?v=96';
-import { buildLayerPanel, buildLegend, buildBasemapSwitcher, openCatalogModal } from './ui.js?v=96';
-import { makeDraggable, makeCollapsible, makeResizable, resetPanelLayout } from './panels.js?v=96';
+import { addLayer, updateLayerVisibility, updateLayerOpacity, bindPopups, reAddAllLayers, applyLayerOrder, setLayerColor, setLayerPattern, setLayerPatternOpacity, setLayerRamp, reclassify, removeLayer, applyIndicatorSelection, RAMPS } from './layers.js?v=97';
+import { buildLayerPanel, buildLegend, buildBasemapSwitcher, openCatalogModal } from './ui.js?v=97';
+import { makeDraggable, makeCollapsible, makeResizable, resetPanelLayout } from './panels.js?v=97';
 import { buildToolbar, showToast, exportImage, exportPdf, exportData, exportLayer, setSaveDirty,
   listSavedMaps, getSavedMap, saveNamedMap, deleteSavedMap,
   getActiveMapId, setActiveMapId, clearActiveMapId, withLoading,
-  openSaveMapDialog, openSavedMapsDialog, downloadBlob, stamp } from './toolbar.js?v=96';
-import { ANY, loadDataset, getCategories, getIndicator, getLevels, availableYears, resolveSelection, getValueMap, geometryFor } from './dataset.js?v=96';
-import { openTableModal } from './table.js?v=96';
-import { openProfileModal } from './profile.js?v=96';
-import { openSwipe, closeSwipe, isSwipeOpen } from './swipe.js?v=96';
-import { openMetadataModal } from './metadata.js?v=96';
-import { openWelcomeCard } from './welcome.js?v=96';
-import { openHelpPanel } from './help.js?v=96';
-import { openFeaturedGallery } from './featured.js?v=96';
-import { openImportPlaces } from './import_places.js?v=96';
-import { openImportGeojson } from './import_geojson.js?v=96';
+  openSaveMapDialog, openSavedMapsDialog, downloadBlob, stamp } from './toolbar.js?v=97';
+import { ANY, loadDataset, getCategories, getIndicator, getLevels, availableYears, resolveSelection, getValueMap, geometryFor } from './dataset.js?v=97';
+import { openTableModal } from './table.js?v=97';
+import { openProfileModal } from './profile.js?v=97';
+import { openSwipe, closeSwipe, isSwipeOpen } from './swipe.js?v=97';
+import { openMetadataModal } from './metadata.js?v=97';
+import { openWelcomeCard } from './welcome.js?v=97';
+import { openHelpPanel } from './help.js?v=97';
+import { openFeaturedGallery } from './featured.js?v=97';
+import { openImportPlaces } from './import_places.js?v=97';
+import { openImportGeojson } from './import_geojson.js?v=97';
 
 // ---- Basemap definitions (all key-free) ----
 export const BASEMAPS = {
@@ -66,6 +66,7 @@ const state = {
   map: null,
   catalog: null,
   currentBasemap: 'streets',
+  buildings3d: false, // OpenFreeMap 3D building extrusion overlay (toggle)
   activeLayerIds: new Set(),
   layerOrder: [],
   geoCache: {},     // reporting level -> loaded geometry FeatureCollection
@@ -425,6 +426,7 @@ async function init() {
     for (const layerCfg of catalog.layers) {
       await addLayer(map, layerCfg, state.activeLayerIds.has(layerCfg.id));
     }
+    ensure3DBuildings();   // restore the 3D-buildings overlay (under data layers) if saved on
     applyLayerOrder(map, orderedCfgs());
     bindPopups(map, catalog.layers, { onEnrich: buildTrendSparkline, actions: compareActions, onPinClick: openPinEditor });
     refreshLegend();
@@ -442,7 +444,8 @@ async function init() {
   });
 
   // ---- UI wiring ----
-  buildBasemapSwitcher(BASEMAPS, state.currentBasemap, switchBasemap);
+  buildBasemapSwitcher(BASEMAPS, state.currentBasemap, switchBasemap,
+    { getBuildings3d: () => state.buildings3d, onToggle3D: set3DBuildings });
 
   // Top toolbar: panel toggles, save-to-device, export.
   buildToolbar({
@@ -2240,6 +2243,7 @@ function captureMapState() {
   return {
     v: 1,
     basemap: state.currentBasemap,
+    buildings3d: state.buildings3d,
     order: state.layerOrder.slice(),
     active: Array.from(state.activeLayerIds),
     view: {
@@ -2389,6 +2393,7 @@ function applySavedUiState(saved) {
 // so addLayer/applyLayerOrder pick up the restored styles, order, and visibility.
 function applySavedToCatalog(saved) {
   if (saved.basemap && BASEMAPS[saved.basemap]) state.currentBasemap = saved.basemap;
+  if (typeof saved.buildings3d === 'boolean') state.buildings3d = saved.buildings3d;
 
   if (Array.isArray(saved.order)) {
     const known = saved.order.filter(id => findLayer(id));
@@ -2617,6 +2622,60 @@ document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden') flushAutosave();
 });
 
+// 3D buildings: a single key-free OpenFreeMap vector source + fill-extrusion layer that
+// rides on top of whatever raster basemap is active. Building data only exists at z14+.
+// Added UNDER the data overlays (callers re-run applyLayerOrder to keep choropleths on top).
+function ensure3DBuildings() {
+  const map = state.map;
+  if (!map) return;
+  if (state.buildings3d) {
+    if (!map.getSource('openmaptiles')) {
+      map.addSource('openmaptiles', {
+        type: 'vector',
+        url: 'https://tiles.openfreemap.org/planet',
+        attribution: '\u00a9 OpenMapTiles \u00a9 OpenStreetMap contributors'
+      });
+    }
+    if (!map.getLayer('building-3d')) {
+      map.addLayer({
+        id: 'building-3d',
+        type: 'fill-extrusion',
+        source: 'openmaptiles',
+        'source-layer': 'building',
+        minzoom: 14,
+        paint: {
+          'fill-extrusion-base': ['get', 'render_min_height'],
+          'fill-extrusion-height': ['get', 'render_height'],
+          'fill-extrusion-color': 'hsl(35, 8%, 72%)',
+          'fill-extrusion-opacity': 0.85
+        }
+      });
+    }
+  } else {
+    if (map.getLayer('building-3d')) map.removeLayer('building-3d');
+    if (map.getSource('openmaptiles')) map.removeSource('openmaptiles');
+  }
+}
+
+// Toggle 3D buildings from the UI. Adds/removes the overlay, keeps data layers on top,
+// and (when turning on) tilts the camera + zooms to where buildings become visible.
+function set3DBuildings(on) {
+  state.buildings3d = !!on;
+  ensure3DBuildings();
+  if (state.buildings3d) {
+    applyLayerOrder(state.map, orderedCfgs());      // push data choropleths back above buildings
+    if (state.highlightData) ensureHighlightLayers();
+    if (state.compareSet.length) refreshCompareHighlight();
+    const ease = {};
+    if (state.map.getPitch() < 1) ease.pitch = 55;  // flat view hides extrusions — tilt in
+    if (state.map.getZoom() < 14) ease.zoom = 15;   // buildings only exist at z14+
+    if (Object.keys(ease).length) state.map.easeTo({ ...ease, duration: 700 });
+  }
+  const cb = document.getElementById('buildings3d-toggle');
+  if (cb) cb.checked = state.buildings3d;
+  markDirty();
+}
+
 function switchBasemap(key) {
   if (key === state.currentBasemap) return;
   if (isSwipeOpen()) closeSwipe();   // clone keeps its own basemap — exit to avoid a mismatch
@@ -2627,6 +2686,7 @@ function switchBasemap(key) {
   map.setStyle(basemapStyle(key));
   map.once('styledata', async () => {
     await reAddAllLayers(map, state.catalog.layers, state.activeLayerIds);
+    ensure3DBuildings();   // the new raster style wiped it — re-add under the data layers
     applyLayerOrder(map, orderedCfgs());
     bindPopups(map, state.catalog.layers);
     if (state.highlightData) ensureHighlightLayers();  // survive basemap swap
