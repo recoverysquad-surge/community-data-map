@@ -1917,6 +1917,15 @@ html, body {
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
   overflow: hidden;
 }
+/* Compare modal is user-resizable (native grip, bottom-right). Scoped to the Compare
+   overlay so the Profile window (which reuses .cmp-modal) is unaffected. */
+.cmp-overlay .cmp-modal {
+  resize: both;
+  min-width: 360px;
+  min-height: 220px;
+  max-width: 98vw;
+  max-height: 96vh;
+}
 .cmp-bar {
   display: flex;
   align-items: center;
@@ -1965,6 +1974,41 @@ html, body {
   cursor: pointer;
 }
 .cmp-close:hover { background: rgba(255, 255, 255, 0.35); }
+/* Icon-only header actions (Add columns, Download) — square, tooltip via title. */
+.cmp-icon {
+  width: 30px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  line-height: 1;
+}
+
+/* Minimized: dock the modal to the bottom-right as a header-only bar and let the
+   transparent backdrop pass pointer events through to the map underneath. */
+.cmp-overlay.minimized {
+  background: transparent;
+  pointer-events: none;
+  align-items: flex-end;
+  justify-content: flex-end;
+}
+.cmp-overlay.minimized .cmp-modal { pointer-events: auto; }
+.cmp-modal.minimized {
+  width: auto !important;
+  min-width: 320px;
+  height: auto !important;
+  min-height: 0;
+  margin: 0 16px 16px 0;
+  resize: none;
+}
+.cmp-modal.minimized .cmp-table-wrap { display: none; }
+/* Collapse the toolbar to just title + restore/close when minimized. */
+.cmp-modal.minimized .cmp-level,
+.cmp-modal.minimized .cmp-toggle,
+.cmp-modal.minimized .cmp-check,
+.cmp-modal.minimized .cmp-btn,
+.cmp-modal.minimized .cmp-menu-wrap { display: none; }
 
 /* ---- Welcome card + Featured Maps gallery (compact, auto-height modals) ---- */
 .welcome-modal, .featured-modal {

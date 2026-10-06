@@ -5,9 +5,9 @@
 // Download the current table as CSV, Excel (.xlsx, lazy SheetJS) or GeoJSON.
 
 import { loadDataset, getCategories, getIndicators, searchIndicators, getIndicator,
-  getLevels, availableDisplays, availableYears, getValueMap } from './dataset.js?v=100';
-import { withLoading } from './toolbar.js?v=100';
-import { renderTrend, renderScatter, renderSlope, renderRadar, renderDistribution } from './charts.js?v=100';
+  getLevels, availableDisplays, availableYears, getValueMap } from './dataset.js?v=101';
+import { withLoading } from './toolbar.js?v=101';
+import { renderTrend, renderScatter, renderSlope, renderRadar, renderDistribution } from './charts.js?v=101';
 
 // ---- module state (one live table at a time) ----
 const M = {
@@ -495,7 +495,9 @@ export async function openTableModal(deps) {
   levelGroup.appendChild(levelSel);
   bar.appendChild(levelGroup);
 
-  const addBtn = el('button', 'cmp-btn cmp-primary', '+ Add Columns');
+  const addBtn = el('button', 'cmp-btn cmp-primary cmp-icon', '+');
+  addBtn.title = 'Add columns';
+  addBtn.setAttribute('aria-label', 'Add columns');
   bar.appendChild(addBtn);
 
   // View toggle: Table / Bars / Trend / Scatter / Slope / Radar / Distribution.
@@ -555,7 +557,9 @@ export async function openTableModal(deps) {
 
   // Download dropdown.
   const dlWrap = el('div', 'cmp-menu-wrap');
-  const dlBtn = el('button', 'cmp-btn', 'Download \u25be');
+  const dlBtn = el('button', 'cmp-btn cmp-icon', '\u2913');
+  dlBtn.title = 'Download';
+  dlBtn.setAttribute('aria-label', 'Download');
   const dlMenu = el('div', 'cmp-menu');
   const mkItem = (label, fn) => {
     const b = el('button', 'cmp-menu-item', label);
@@ -569,6 +573,11 @@ export async function openTableModal(deps) {
   dlWrap.appendChild(dlBtn);
   dlWrap.appendChild(dlMenu);
   bar.appendChild(dlWrap);
+
+  const minBtn = el('button', 'cmp-close cmp-min', '\u2212');
+  minBtn.title = 'Minimize';
+  minBtn.setAttribute('aria-label', 'Minimize');
+  bar.appendChild(minBtn);
 
   const close = el('button', 'cmp-close', '\u00d7');
   close.title = 'Close';
@@ -617,6 +626,18 @@ export async function openTableModal(deps) {
   }));
 
   heatCb.addEventListener('change', () => { M.heatmap = heatCb.checked; refresh(); });
+
+  // Minimize collapses the modal to its header bar and docks it bottom-right, letting
+  // the backdrop pass clicks through to the map. Restoring returns to the last size.
+  const setMinimized = (on) => {
+    overlay.classList.toggle('minimized', on);
+    modal.classList.toggle('minimized', on);
+    minBtn.textContent = on ? '\u2197' : '\u2212';
+    minBtn.title = on ? 'Restore' : 'Minimize';
+    minBtn.setAttribute('aria-label', minBtn.title);
+    if (on) dlMenu.classList.remove('open');
+  };
+  minBtn.addEventListener('click', () => setMinimized(!modal.classList.contains('minimized')));
 
   const dismiss = () => { overlay.classList.remove('open'); dlMenu.classList.remove('open'); };
   close.addEventListener('click', dismiss);
