@@ -1,0 +1,37 @@
+{
+  "_comment": "DISCOVERY probe: select a Counties study area, then for a spread of indicator groups read the Geography (reporting-level) dropdown options. level is deliberately a no-match sentinel so harvest.js logs 'available: <real level labels>' (harvest.js:241) for every indicator without doing a slow grid harvest. Reveals the exact SAVI reporting-level strings for Township / Block Group / MSA so we can target them correctly. Fully isolated output/state (geoprobe_*) so it never touches the live priority harvest.",
+
+  "headless": false,
+  "delayMs": 600,
+  "gridWaitSec": 20,
+
+  "reportingTargets": [
+    { "level": "__PROBE_NO_MATCH__", "geoTypeLabel": "Counties", "seedGeoId": "18097" }
+  ],
+
+  "scope": {
+    "categories": [],
+    "includePaths": [
+      "Demographics › Age",
+      "Demographics › Gender",
+      "Housing › Dwelling Type",
+      "Economy › Employment Statistics",
+      "Income › Poverty"
+    ],
+    "maxGroups": 5,
+    "displays": { "first": 1 },
+    "years": { "latest": 1 }
+  },
+
+  "maxLeavesPerGroup": 2,
+  "reloadBetweenCombos": true,
+
+  "sync": { "mode": "resume", "refreshLatestYears": 2 },
+
+  "output": {
+    "ndjson": "output/geoprobe_data.ndjson",
+    "csv": "output/geoprobe_data.csv",
+    "state": "output/geoprobe_state.json",
+    "rawDir": "output/geoprobe_raw"
+  }
+}

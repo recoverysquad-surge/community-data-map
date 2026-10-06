@@ -1,0 +1,23 @@
+{
+  "_comment": "Smoke test: one group, one display, one (latest) year = a single table.",
+  "headless": false,
+  "delayMs": 1200,
+  "reportingTargets": [
+    { "level": "Counties", "geoTypeLabel": "Counties", "seedGeoId": "18097" }
+  ],
+  "scope": {
+    "categories": ["211 Helpline Calls"],
+    "includePaths": ["211 Helpline Calls \u203a Caller Issues \u203a Annual"],
+    "maxGroups": 1,
+    "displays": ["as % of 211 Calls"],
+    "years": { "latest": 1 }
+  },
+  "maxLeavesPerGroup": 3,
+  "reloadBetweenCombos": true,
+  "output": {
+    "ndjson": "output/smoke_data.ndjson",
+    "csv": "output/smoke_data.csv",
+    "state": "output/smoke_state.json",
+    "rawDir": "output/smoke_raw"
+  }
+}

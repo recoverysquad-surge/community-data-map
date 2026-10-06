@@ -1,0 +1,48 @@
+{
+  "_comment": "PRIORITIZED harvest for fastest VISIBLE results. Reuses the SAME output/state files as harvest.config.json so every already-completed chunk is skipped (no duplicate datasource hits). Scope is narrowed to the only two geo levels the map renders (Counties, 2010 Census Tracts) and the high-value choropleth categories. Excludes 211 Helpline Calls (heavy, low marginal visibility), Sites/Programs/Agencies (covered by the separate harvest_sites.js pipeline), and Political Boundaries. To go back to the full deep harvest, use harvest.config.json.",
+
+  "headless": false,
+  "delayMs": 600,
+
+  "reportingTargets": [
+    { "level": "Counties",          "geoTypeLabel": "Counties",           "seedGeoId": "18097" },
+    { "level": "2010 Census Tract", "geoTypeLabel": "2010 Census Tracts", "seedGeoId": "18097391000" },
+    { "level": "Township",          "geoTypeLabel": "Townships",          "seedGeoId": "1809711512" },
+    { "level": "2010 Blockgroup",   "geoTypeLabel": "2010 Blockgroups",   "seedGeoId": "180973910003" },
+    { "level": "Metropolitan Statistical Areas 2013", "geoTypeLabel": "Counties", "seedGeoId": "18097" }
+  ],
+
+  "scope": {
+    "categories": [
+      "Demographics",
+      "Health",
+      "Housing",
+      "Education",
+      "Income",
+      "Economy",
+      "Public Safety",
+      "Environment",
+      "Transportation and Mobility",
+      "Arts, Culture and Recreation"
+    ],
+    "includePaths": [],
+    "maxGroups": 0,
+    "displays": "all",
+    "years": "all"
+  },
+
+  "maxLeavesPerGroup": 8,
+  "reloadBetweenCombos": true,
+
+  "sync": {
+    "mode": "resume",
+    "refreshLatestYears": 2
+  },
+
+  "output": {
+    "ndjson": "output/harvest_data.ndjson",
+    "csv": "output/harvest_data.csv",
+    "state": "output/harvest_state.json",
+    "rawDir": "output/raw"
+  }
+}

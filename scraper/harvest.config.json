@@ -1,0 +1,41 @@
+{
+  "_comment": "SAVI resumable harvester config. Scope is intentionally SMALL by default (one category) so a first run is quick and safe. To harvest everything, set scope.categories to [] (all) or list the categories you want, and set scope.maxGroups to 0 (no limit). The harvester is resumable: re-running skips work already recorded in the state file.",
+
+  "headless": false,
+  "delayMs": 1500,
+
+  "_targets_comment": "ALL geographies. 'level' is matched (exact or case-insensitive substring) against each item's actual reporting-level options (e.g. 'ZIP' -> 'ZIP Codes'). geoTypeLabel = service-area type; seedGeoId = a valid geo of that type. MSA has no service-area type, so it seeds via Counties and reports up. Existing Counties chunks in the state file stay done; the other levels are new chunkKeys and will be harvested on resume.",
+  "reportingTargets": [
+    { "level": "Counties",                      "geoTypeLabel": "Counties",                       "seedGeoId": "18097" },
+    { "level": "2010 Census Tract",             "geoTypeLabel": "2010 Census Tracts",             "seedGeoId": "18097391000" },
+    { "level": "ZIP",                           "geoTypeLabel": "ZIP Code Tabulation Areas 2010", "seedGeoId": "46204" },
+    { "level": "Township",                      "geoTypeLabel": "Townships",                      "seedGeoId": "1809711512" },
+    { "level": "2010 Blockgroup",               "geoTypeLabel": "2010 Blockgroups",               "seedGeoId": "180973910003" },
+    { "level": "School Corporation",            "geoTypeLabel": "School Corporations",            "seedGeoId": "5385" },
+    { "level": "Metropolitan Statistical Areas 2013", "geoTypeLabel": "Counties",                 "seedGeoId": "18097" }
+  ],
+
+  "scope": {
+    "categories": [],
+    "includePaths": [],
+    "maxGroups": 0,
+    "displays": "all",
+    "years": "all"
+  },
+
+  "maxLeavesPerGroup": 8,
+  "reloadBetweenCombos": true,
+
+  "_sync_comment": "How a RE-RUN treats work already in the state file. 'resume' (default): skip everything already captured; only brand-new chunks (e.g. new indicators after a catalog refresh) are harvested. 'refresh': after the first full harvest, use this to SYNC — it re-fetches newly published years plus the latest refreshLatestYears years (to catch revisions) and skips the rest. After a refresh run, run: node dedup_output.js",
+  "sync": {
+    "mode": "resume",
+    "refreshLatestYears": 2
+  },
+
+  "output": {
+    "ndjson": "output/harvest_data.ndjson",
+    "csv": "output/harvest_data.csv",
+    "state": "output/harvest_state.json",
+    "rawDir": "output/raw"
+  }
+}

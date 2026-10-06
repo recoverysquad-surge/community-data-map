@@ -1,0 +1,16 @@
+{
+  "_comment": "Retry config for the 4 stubborn sites groups that time out loading Map.aspx. Same output/state as the main sites harvest (resumable: skips the 164 done groups, only retries the undone 4). Longer navTimeoutMs (3 min) for the asset-heavy Map.aspx load; larger delays to be gentle while the 4-way tabular run is also hitting the server.",
+  "headless": false,
+  "delayMs": 3000,
+  "navTimeoutMs": 360000,
+  "scope": {
+    "includePaths": [],
+    "maxGroups": 0
+  },
+  "output": {
+    "ndjson": "output/sites_points.ndjson",
+    "csv": "output/sites_points.csv",
+    "state": "output/sites_points_state.json",
+    "rawDir": "output/sites_points_raw"
+  }
+}

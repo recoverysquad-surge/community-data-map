@@ -1,0 +1,15 @@
+{
+  "_comment": "Smoke test: one Sites group (Arts/Culture Facilities incl. Museums) -> point rows.",
+  "headless": false,
+  "delayMs": 2000,
+  "scope": {
+    "includePaths": ["Sites, Programs, & Agencies \u203a Arts, Culture and Recreation \u203a Facilities"],
+    "maxGroups": 1
+  },
+  "output": {
+    "ndjson": "output/sites_smoke.ndjson",
+    "csv": "output/sites_smoke.csv",
+    "state": "output/sites_smoke_state.json",
+    "rawDir": "output/sites_smoke_raw"
+  }
+}

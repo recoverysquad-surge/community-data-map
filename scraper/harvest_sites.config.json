@@ -1,0 +1,15 @@
+{
+  "_comment": "Full Sites/asset point harvest. ~168 groups (all 1055 asset leaves). Resumable + polite; needs a real display (DISPLAY=:0). Narrow with scope.includePaths or scope.maxGroups while testing.",
+  "headless": false,
+  "delayMs": 2000,
+  "scope": {
+    "includePaths": [],
+    "maxGroups": 0
+  },
+  "output": {
+    "ndjson": "output/sites_points.ndjson",
+    "csv": "output/sites_points.csv",
+    "state": "output/sites_points_state.json",
+    "rawDir": "output/sites_points_raw"
+  }
+}

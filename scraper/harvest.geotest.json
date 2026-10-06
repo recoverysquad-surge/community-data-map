@@ -1,0 +1,31 @@
+{
+  "_comment": "TEMP validation: confirm a Census-Tract grid captures with a longer wait window.",
+
+  "headless": false,
+  "delayMs": 1200,
+  "gridWaitSec": 150,
+
+  "reportingTargets": [
+    { "level": "2010 Census Tract", "geoTypeLabel": "2010 Census Tracts", "seedGeoId": "18097391000" }
+  ],
+
+  "scope": {
+    "categories": ["Demographics"],
+    "includePaths": [],
+    "maxGroups": 1,
+    "displays": { "first": 1 },
+    "years": { "latest": 3 }
+  },
+
+  "maxLeavesPerGroup": 2,
+  "reloadBetweenCombos": true,
+
+  "sync": { "mode": "resume", "refreshLatestYears": 2 },
+
+  "output": {
+    "ndjson": "output/geotest_data.ndjson",
+    "csv": "output/geotest_data.csv",
+    "state": "output/geotest_state.json",
+    "rawDir": "output/geotest_raw"
+  }
+}

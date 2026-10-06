@@ -1,0 +1,42 @@
+{
+  "_comment": "BREADTH-FIRST FAST PASS to light up the 5 geography types that have geometry but no data yet (Blockgroups, Townships, School Corporations, ZIP/ZCTA, MSA). Counties + 2010 Census Tracts already have data and are live. Tiny scope (a few indicator groups that between them support all 5 levels; 1 display, 1 newest year) so each level yields a usable sample fast. The harvester auto-skips (group x level) combos the indicator doesn't support. Own output/state files -> does NOT touch the running shards or deep run. Headed (DISPLAY=:0) required for the Table.aspx popup. Resumable.",
+
+  "headless": false,
+  "delayMs": 1200,
+
+  "reportingTargets": [
+    { "level": "2010 Blockgroup",                      "geoTypeLabel": "2010 Blockgroups",               "seedGeoId": "180973910003" },
+    { "level": "Township",                             "geoTypeLabel": "Townships",                      "seedGeoId": "1809711512" },
+    { "level": "School Corporation",                   "geoTypeLabel": "School Corporations",            "seedGeoId": "5385" },
+    { "level": "ZIP",                                  "geoTypeLabel": "ZIP Code Tabulation Areas 2010", "seedGeoId": "46204" },
+    { "level": "Metropolitan Statistical Areas 2013",  "geoTypeLabel": "Counties",                       "seedGeoId": "18097" }
+  ],
+
+  "scope": {
+    "categories": [],
+    "includePaths": [
+      "Demographics › Age › Adults",
+      "Demographics › Age › Children",
+      "Demographics › Race and Ethnicity",
+      "Education › Attainment › High School › Total",
+      "Education › Attainment › College › Total",
+      "211 Helpline Calls › Caller Issues › Annual",
+      "211 Helpline Calls › Calls › Basic Needs › Annual"
+    ],
+    "maxGroups": 0,
+    "displays": { "first": 1 },
+    "years": { "latest": 1 }
+  },
+
+  "maxLeavesPerGroup": 8,
+  "reloadBetweenCombos": true,
+
+  "sync": { "mode": "resume", "refreshLatestYears": 2 },
+
+  "output": {
+    "ndjson": "output/allgeo_data.ndjson",
+    "csv": "output/allgeo_data.csv",
+    "state": "output/allgeo_state.json",
+    "rawDir": "output/allgeo_raw"
+  }
+}

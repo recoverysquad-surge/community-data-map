@@ -1,0 +1,26 @@
+{
+  "capturedAt": "2026-09-29",
+  "note": "SAVI Central Indiana region. County FIPS confirmed from ServiceArea/CommunityProfiles page. Finer geographies (tracts, block groups, ZCTAs) are populated per-county via postback in the picker; the reliable bulk source for their full id lists is US Census TIGER/ACS (state 18 + these county codes). SAVI internal geo ids for TRACT2010 look like 11-digit FIPS (e.g. 18097391000 = state18 + county097 Marion + tract 391000).",
+  "geographyTypes": {
+    "BLKGRP2010": { "token": "BLKGRP2010", "refId": 283, "label": "2010 Blockgroups" },
+    "TRACT2010":  { "token": "TRACT2010",  "refId": 282, "label": "2010 Census Tracts" },
+    "COUNTY":     { "token": "COUNTY",     "refId": 2,   "label": "Counties" },
+    "SCHLCORP":   { "token": "SCHLCORP",   "refId": 55,  "label": "School Corporations" },
+    "TOWNSHIP":   { "token": "TOWNSHIP",   "refId": 3,   "label": "Townships" },
+    "ZCTA2010":   { "token": "ZCTA2010",   "refId": 341, "label": "ZIP Code Tabulation Areas 2010" },
+    "NEIGHBORHOOD": { "token": "_SystemBoundary_DMD Neighborhood", "refId": 0, "label": "Marion County Neighborhoods" }
+  },
+  "counties": [
+    { "fips": "18011", "name": "Boone" },
+    { "fips": "18013", "name": "Brown" },
+    { "fips": "18057", "name": "Hamilton" },
+    { "fips": "18059", "name": "Hancock" },
+    { "fips": "18063", "name": "Hendricks" },
+    { "fips": "18081", "name": "Johnson" },
+    { "fips": "18095", "name": "Madison" },
+    { "fips": "18097", "name": "Marion" },
+    { "fips": "18109", "name": "Morgan" },
+    { "fips": "18133", "name": "Putnam" },
+    { "fips": "18145", "name": "Shelby" }
+  ]
+}

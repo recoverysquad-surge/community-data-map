@@ -1,7 +1,17 @@
 # The scraper/harvester is a local data-ingestion toolchain, NOT part of the
-# deployed static site. Keep its heavy artifacts, native libs, and node_modules
-# out of the repo — only the built data under data/ is published.
-scraper/
+# deployed static site. Track its SOURCE (scripts + hand-maintained configs) so the
+# pipeline is reproducible, but keep heavy/generated artifacts out of the repo — only
+# the built data under data/ is published.
+scraper/node_modules/
+scraper/.native/
+scraper/output/
+scraper/artifacts/
+# generated per-run by make_shard_config.js
+scraper/harvest.shard*.json
+# debug screenshots / scratch
+scraper/*.png
+scraper/discover_servicearea.html
+scraper/savi_output.csv
 
 # Editor / OS noise
 .DS_Store

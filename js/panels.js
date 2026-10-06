@@ -135,6 +135,38 @@ export function resetPanelLayout() {
   });
 }
 
+// Shared drag-to-move + minimize for the centered `.cmp-modal` overlays (Compare, Profile).
+// Unlike the docked `.float-panel` helpers above, these modals stay flex-centered and move
+// via a transform offset (composes cleanly with the centering + CSS resize), and "minimize"
+// collapses to the header bar docked bottom-right (via the `minimized` class on both overlay
+// and modal) so the backdrop passes clicks through to the map.
+//   opts: { overlay, modal, bar, minBtn, onMinimize }  (minBtn/onMinimize optional)
+export function makeModalMovable({ overlay, modal, bar, minBtn, onMinimize }) {
+  let dragX = 0, dragY = 0;
+  const applyDrag = () => { modal.style.transform = `translate(${dragX}px, ${dragY}px)`; };
+  bar.addEventListener('mousedown', (e) => {
+    if (e.button !== 0 || e.target.closest('button, select, input, label, .cmp-menu-wrap')) return;
+    e.preventDefault();
+    const sx = e.clientX, sy = e.clientY, ox = dragX, oy = dragY;
+    const move = (ev) => { dragX = ox + (ev.clientX - sx); dragY = oy + (ev.clientY - sy); applyDrag(); };
+    const up = () => { document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up); };
+    document.addEventListener('mousemove', move);
+    document.addEventListener('mouseup', up);
+  });
+
+  if (minBtn) {
+    const setMinimized = (on) => {
+      overlay.classList.toggle('minimized', on);
+      modal.classList.toggle('minimized', on);
+      minBtn.textContent = on ? '+' : '\u2212';
+      minBtn.title = on ? 'Restore' : 'Minimize';
+      minBtn.setAttribute('aria-label', minBtn.title);
+      if (on && typeof onMinimize === 'function') onMinimize();
+    };
+    minBtn.addEventListener('click', () => setMinimized(!modal.classList.contains('minimized')));
+  }
+}
+
 // Toggle a panel's collapsed state (body hidden, header stays) via a button.
 export function makeCollapsible(panelEl, btnEl, onChange) {
   const sync = () => {

@@ -1,0 +1,54 @@
+{
+  "_comment": "BROAD SHALLOW PASS: one display + the 3 MOST-RECENT years per indicator, across ALL categories and ALL geographies. Goal = map coverage everywhere fast, with enough recent years for a time-lapse. Uses its OWN output/state files so the full deep run (harvest.config.json / harvest_state.json) stays untouched and resumable later. displays.first=1 picks the first/most-basic display per chunk; years.latest=3 grabs the newest 3 years AVAILABLE AT EACH LEVEL (finer levels like tracts publish fewer/older years than Counties, so 'most recent' is resolved per level after the reporting level is set). Reduced 5->3 on 2026-10-01 to speed broad coverage; the deep full run (5yr/all displays/211) comes later.",
+
+  "headless": false,
+  "delayMs": 1500,
+
+  "_targets_comment": "ALL geographies. 'level' is matched (exact or case-insensitive substring) against each item's actual reporting-level options, so e.g. 'ZIP' resolves to 'ZIP Codes'. geoTypeLabel picks the service-area type; seedGeoId is a valid geo of that type (from GetGeoSelections). MSA has no service-area type, so it seeds via Counties and reports up.",
+  "reportingTargets": [
+    { "level": "Counties",                      "geoTypeLabel": "Counties",                       "seedGeoId": "18097" },
+    { "level": "2010 Census Tract",             "geoTypeLabel": "2010 Census Tracts",             "seedGeoId": "18097391000" },
+    { "level": "ZIP",                           "geoTypeLabel": "ZIP Code Tabulation Areas 2010", "seedGeoId": "46204" },
+    { "level": "Township",                      "geoTypeLabel": "Townships",                      "seedGeoId": "1809711512" },
+    { "level": "2010 Blockgroup",               "geoTypeLabel": "2010 Blockgroups",               "seedGeoId": "180973910003" },
+    { "level": "School Corporation",            "geoTypeLabel": "School Corporations",            "seedGeoId": "5385" },
+    { "level": "Metropolitan Statistical Areas 2013", "geoTypeLabel": "Counties",                 "seedGeoId": "18097" }
+  ],
+
+  "scope": {
+    "_categories_comment": "211 Helpline Calls INTENTIONALLY EXCLUDED (2026-09-30): the deep run (harvest_state.json) already covers 211 comprehensively at Counties; user wants broad coverage across the OTHER 12 categories first. Remaining 211 (incl. ZIP/MSA/finer) can be filled later with a targeted run. Empty [] = ALL categories.",
+    "categories": [
+      "Arts, Culture and Recreation",
+      "Demographics",
+      "Economy",
+      "Education",
+      "Environment",
+      "Health",
+      "Housing",
+      "Income",
+      "Political and Administrative Boundaries",
+      "Public Safety",
+      "Sites, Programs, & Agencies",
+      "Transportation and Mobility"
+    ],
+    "includePaths": [],
+    "maxGroups": 0,
+    "displays": { "first": 1 },
+    "years": { "latest": 3 }
+  },
+
+  "maxLeavesPerGroup": 8,
+  "reloadBetweenCombos": true,
+
+  "sync": {
+    "mode": "resume",
+    "refreshLatestYears": 2
+  },
+
+  "output": {
+    "ndjson": "output/shallow_data.ndjson",
+    "csv": "output/shallow_data.csv",
+    "state": "output/shallow_state.json",
+    "rawDir": "output/shallow_raw"
+  }
+}

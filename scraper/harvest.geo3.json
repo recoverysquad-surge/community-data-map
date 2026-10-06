@@ -1,0 +1,39 @@
+{
+  "_comment": "SAMPLE harvest for the 3 geographies that had ZERO data (Townships, 2010 Blockgroups, Metropolitan Statistical Areas 2013). Exact reporting-level strings discovered via harvest.geoprobe.json. Study area = Counties seed 18097 (known-good nav; one selected geo still reports all geos of the chosen level across the default region). Indicator groups are small DECENNIAL demographics/housing + one regional ACS economic group — the kinds that actually publish at these fine/regional levels (the earlier sample used ACS marital/household indicators that don't). Fully isolated output/state (geo3_*) so it never touches the live priority harvest. gridWaitSec high because blockgroup grids return thousands of rows.",
+
+  "headless": false,
+  "delayMs": 600,
+  "gridWaitSec": 150,
+
+  "reportingTargets": [
+    { "level": "Townships",                            "geoTypeLabel": "Counties", "seedGeoId": "18097" },
+    { "level": "Metropolitan Statistical Areas 2013",  "geoTypeLabel": "Counties", "seedGeoId": "18097" },
+    { "level": "2010 Blockgroups",                     "geoTypeLabel": "Counties", "seedGeoId": "18097" }
+  ],
+
+  "scope": {
+    "categories": [],
+    "includePaths": [
+      "Demographics › Age › Median › Total",
+      "Demographics › Gender › Females › Total",
+      "Demographics › Gender › Males › Total",
+      "Housing › Dwelling Type",
+      "Economy › Employment Statistics › Labor Force › Total"
+    ],
+    "maxGroups": 5,
+    "displays": { "first": 1 },
+    "years": { "latest": 1 }
+  },
+
+  "maxLeavesPerGroup": 2,
+  "reloadBetweenCombos": true,
+
+  "sync": { "mode": "resume", "refreshLatestYears": 2 },
+
+  "output": {
+    "ndjson": "output/geo3_data.ndjson",
+    "csv": "output/geo3_data.csv",
+    "state": "output/geo3_state.json",
+    "rawDir": "output/geo3_raw"
+  }
+}
