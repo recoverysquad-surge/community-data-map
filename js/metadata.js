@@ -3,8 +3,8 @@
 // (reporting level -> displays -> year range). Detailed source/methodology/units are
 // NOT harvested; those live on the classic SAVI site, which we link out to.
 
-import { getIndicator, availableLevels, availableDisplays, availableYears } from './dataset.js?v=98';
-import { makeDraggable } from './panels.js?v=98';
+import { getIndicator, availableLevels, availableDisplays, availableYears } from './dataset.js?v=99';
+import { makeDraggable } from './panels.js?v=99';
 
 const CLASSIC_URL = 'https://classic.savi.org/savi';
 

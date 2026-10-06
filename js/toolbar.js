@@ -699,6 +699,8 @@ export function buildToolbar(handlers) {
   // reset actions, then the Welcome card.
   const view = makeDropdown(icon('view') + label('View'), '', 'left');
   view.wrap.classList.add('tb-mobile-hide');
+  view.btn.classList.add('tb-icononly');   // icon-only on desktop
+  view.btn.setAttribute('aria-label', 'View');
   view.btn.title = 'Show or hide panels and controls';
   let lastGroup = null;
   const viewToggles = handlers.panels.map(p => {
@@ -760,8 +762,9 @@ export function buildToolbar(handlers) {
   // Compare: open the tabular data view.
   const tableBtn = document.createElement('button');
   tableBtn.type = 'button';
-  tableBtn.className = 'tb-btn tb-mobile-hide';
+  tableBtn.className = 'tb-btn tb-icononly tb-mobile-hide';
   tableBtn.innerHTML = icon('table') + label('Compare');
+  tableBtn.setAttribute('aria-label', 'Compare');   // icon-only on desktop
   tableBtn.title = 'Compare indicators across geographies in a table';
   tableBtn.addEventListener('click', () => handlers.onOpenTable && handlers.onOpenTable());
   bar.appendChild(tableBtn);
@@ -769,8 +772,9 @@ export function buildToolbar(handlers) {
   // Profile: single-geography fact sheet.
   const profBtn = document.createElement('button');
   profBtn.type = 'button';
-  profBtn.className = 'tb-btn tb-mobile-hide';
+  profBtn.className = 'tb-btn tb-icononly tb-mobile-hide';
   profBtn.innerHTML = icon('profile') + label('Profile');
+  profBtn.setAttribute('aria-label', 'Profile');   // icon-only on desktop
   profBtn.title = 'See all indicators for one geography';
   profBtn.addEventListener('click', () => handlers.onOpenProfile && handlers.onOpenProfile());
   bar.appendChild(profBtn);
