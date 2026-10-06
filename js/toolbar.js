@@ -688,9 +688,9 @@ export function buildToolbar(handlers) {
   // hamburger. Uses the same layers-with-plus glyph as the Layers panel's add button.
   const addBtn = document.createElement('button');
   addBtn.type = 'button';
-  addBtn.className = 'tb-btn tb-primary tb-icononly';
-  addBtn.innerHTML = icon('adddata') + label('Data');
-  addBtn.setAttribute('aria-label', 'Add Data');   // icon-only (label hidden)
+  addBtn.className = 'tb-btn tb-primary tb-collapse-label';
+  addBtn.innerHTML = icon('adddata') + label('Add Data');
+  addBtn.setAttribute('aria-label', 'Add Data');   // label collapses to icon on narrow desktop
   addBtn.title = 'Add a data indicator to the map';
   addBtn.addEventListener('click', () => handlers.onAddData && handlers.onAddData());
   bar.appendChild(addBtn);
@@ -699,7 +699,7 @@ export function buildToolbar(handlers) {
   // reset actions, then the Welcome card.
   const view = makeDropdown(icon('view') + label('View'), '', 'left');
   view.wrap.classList.add('tb-mobile-hide');
-  view.btn.classList.add('tb-icononly');   // icon-only on desktop
+  view.btn.classList.add('tb-collapse-label');   // label collapses to icon on narrow desktop
   view.btn.setAttribute('aria-label', 'View');
   view.btn.title = 'Show or hide panels and controls';
   let lastGroup = null;
@@ -718,7 +718,7 @@ export function buildToolbar(handlers) {
   // Re-sync checkmarks each time the menu opens (panels can be closed elsewhere).
   view.menu._onOpen = () => viewToggles.forEach(t => t.render());
   // (View is appended after the Layers/Legend toggles below so the order reads
-  //  Data > Layers > Legend > View > Compare > Profile.)
+  //  Data > Layers > Legend > View > [Map|Compare|Profile] segmented switcher.)
 
   // Layers + Legend are vital, so promote them to obvious top-level toggle buttons
   // (they're also in the View menu). The pressed state reflects the panel's current
@@ -759,25 +759,69 @@ export function buildToolbar(handlers) {
   if (legendToggleBtn) bar.appendChild(legendToggleBtn);
   bar.appendChild(view.wrap);   // View menu sits after the Layers/Legend toggles
 
-  // Compare: open the tabular data view.
-  const tableBtn = document.createElement('button');
-  tableBtn.type = 'button';
-  tableBtn.className = 'tb-btn tb-icononly tb-mobile-hide';
-  tableBtn.innerHTML = icon('table') + label('Compare');
-  tableBtn.setAttribute('aria-label', 'Compare');   // icon-only on desktop
-  tableBtn.title = 'Compare indicators across geographies in a table';
-  tableBtn.addEventListener('click', () => handlers.onOpenTable && handlers.onOpenTable());
-  bar.appendChild(tableBtn);
+  // View-switcher: the app's three "views" (Map / Compare / Profile) as one segmented
+  // control so it reads as a mode picker, not three scattered buttons. The active
+  // segment is highlighted — Map when neither modal is open, Compare/Profile when their
+  // modal is open. Map closes any open Compare/Profile modal to return to the map.
+  const seg = document.createElement('div');
+  seg.className = 'tb-segmented tb-mobile-hide';
+  seg.setAttribute('role', 'group');
+  seg.setAttribute('aria-label', 'View');
+  const segBtn = (iconName, text, title) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'tb-seg';
+    b.innerHTML = icon(iconName) + label(text);
+    b.setAttribute('aria-label', text);
+    b.title = title;
+    seg.appendChild(b);
+    return b;
+  };
+  const mapSeg = segBtn('map', 'Map', 'Return to the map view');
+  const cmpSeg = segBtn('table', 'Compare', 'Compare indicators across geographies in a table');
+  const profSeg = segBtn('profile', 'Profile', 'See all indicators for one geography');
 
-  // Profile: single-geography fact sheet.
-  const profBtn = document.createElement('button');
-  profBtn.type = 'button';
-  profBtn.className = 'tb-btn tb-icononly tb-mobile-hide';
-  profBtn.innerHTML = icon('profile') + label('Profile');
-  profBtn.setAttribute('aria-label', 'Profile');   // icon-only on desktop
-  profBtn.title = 'See all indicators for one geography';
-  profBtn.addEventListener('click', () => handlers.onOpenProfile && handlers.onOpenProfile());
-  bar.appendChild(profBtn);
+  const isOpen = (id) => { const el = document.getElementById(id); return !!(el && el.classList.contains('open')); };
+  const syncViews = () => {
+    const cmpOn = isOpen('cmp-overlay');
+    const profOn = isOpen('prof-overlay');
+    cmpSeg.classList.toggle('tb-seg-on', cmpOn);
+    cmpSeg.setAttribute('aria-pressed', cmpOn ? 'true' : 'false');
+    profSeg.classList.toggle('tb-seg-on', profOn);
+    profSeg.setAttribute('aria-pressed', profOn ? 'true' : 'false');
+    mapSeg.classList.toggle('tb-seg-on', !cmpOn && !profOn);
+    mapSeg.setAttribute('aria-pressed', (!cmpOn && !profOn) ? 'true' : 'false');
+  };
+  mapSeg.addEventListener('click', () => {
+    ['cmp-overlay', 'prof-overlay'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.classList.remove('open');
+    });
+    syncViews();
+  });
+  cmpSeg.addEventListener('click', () => { handlers.onOpenTable && handlers.onOpenTable(); syncViews(); });
+  profSeg.addEventListener('click', () => { handlers.onOpenProfile && handlers.onOpenProfile(); syncViews(); });
+  // The Compare/Profile overlays are created lazily and toggle an `open` class when
+  // shown/dismissed (incl. from their own close button, backdrop, or Esc). Attach a
+  // class-observer to each the first time it appears so the segmented control stays in
+  // sync no matter how the view was opened or closed.
+  if (window.MutationObserver) {
+    const attached = new WeakSet();
+    const attach = () => {
+      ['cmp-overlay', 'prof-overlay'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el && !attached.has(el)) {
+          attached.add(el);
+          new MutationObserver(syncViews).observe(el, { attributes: true, attributeFilter: ['class'] });
+        }
+      });
+      syncViews();
+    };
+    new MutationObserver(attach).observe(document.body, { childList: true });
+    attach();
+  }
+  syncViews();
+  bar.appendChild(seg);
 
   const spacer = document.createElement('div');
   spacer.className = 'tb-spacer';
@@ -793,7 +837,7 @@ export function buildToolbar(handlers) {
   // Map menu: Save / Saved Maps / New (carries the unsaved-changes dot).
   const mapMenu = makeDropdown(icon('map') + label('Map'), 'tb-map-btn');
   mapMenu.wrap.classList.add('tb-mobile-hide');
-  mapMenu.btn.classList.add('tb-icononly');   // icon-only on desktop
+  mapMenu.btn.classList.add('tb-collapse-label');   // label collapses to icon on narrow desktop
   mapMenu.btn.setAttribute('aria-label', 'Map');
   mapMenu.btn.title = 'Save, load, share, or feature maps';
   mapMenuBtn = mapMenu.btn;
@@ -816,9 +860,9 @@ export function buildToolbar(handlers) {
   // New Map: promoted to a visible toolbar button (was buried in the Map menu).
   const newMapBtn = document.createElement('button');
   newMapBtn.type = 'button';
-  newMapBtn.className = 'tb-btn tb-icononly tb-mobile-hide';
+  newMapBtn.className = 'tb-btn tb-collapse-label tb-mobile-hide';
   newMapBtn.innerHTML = icon('newmap') + label('New Map');
-  newMapBtn.setAttribute('aria-label', 'New Map');   // icon-only on desktop
+  newMapBtn.setAttribute('aria-label', 'New Map');   // label collapses to icon on narrow desktop
   newMapBtn.title = 'Start a fresh map (clears the current one)';
   newMapBtn.addEventListener('click', () => handlers.onNewMap && handlers.onNewMap());
   bar.appendChild(newMapBtn);
@@ -827,9 +871,9 @@ export function buildToolbar(handlers) {
   // link elsewhere). Promoted from the Map menu's "Copy Shareable Link".
   const shareBtn = document.createElement('button');
   shareBtn.type = 'button';
-  shareBtn.className = 'tb-btn tb-icononly tb-mobile-hide';
+  shareBtn.className = 'tb-btn tb-collapse-label tb-mobile-hide';
   shareBtn.innerHTML = icon('share') + label('Share');
-  shareBtn.setAttribute('aria-label', 'Share');   // label is icon-only on desktop
+  shareBtn.setAttribute('aria-label', 'Share');   // label collapses to icon on narrow desktop
   shareBtn.title = 'Share the current map view';
   shareBtn.addEventListener('click', () => handlers.onShare && handlers.onShare());
   bar.appendChild(shareBtn);
@@ -837,8 +881,8 @@ export function buildToolbar(handlers) {
   // Export menu.
   const exp = makeDropdown(icon('export') + label('Export'));
   exp.wrap.classList.add('tb-mobile-hide');
-  exp.btn.classList.add('tb-icononly');
-  exp.btn.setAttribute('aria-label', 'Export');   // label is icon-only on desktop
+  exp.btn.classList.add('tb-collapse-label');
+  exp.btn.setAttribute('aria-label', 'Export');   // label collapses to icon on narrow desktop
   exp.btn.title = 'Export the map or data';
   menuAction(exp.menu, 'Image (PNG)', handlers.onExportImage);
   menuAction(exp.menu, 'PDF (print)', handlers.onExportPdf);

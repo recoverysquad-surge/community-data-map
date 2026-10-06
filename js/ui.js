@@ -1,9 +1,9 @@
 // SAVI — UI builders: flat draggable layer list, legend, basemap switcher.
 
-import { accentColor, RAMPS } from './layers.js?v=105';
+import { accentColor, RAMPS } from './layers.js?v=106';
 import { ANY, availableLevels, availableDisplays, availableYears,
-  searchIndicators, getLevels } from './dataset.js?v=105';
-import { makeDraggable } from './panels.js?v=105';
+  searchIndicators, getLevels } from './dataset.js?v=106';
+import { makeDraggable } from './panels.js?v=106';
 
 // Normalize any hex color to #rrggbb (input[type=color] requires the 6-digit form).
 function toHex(c) {
@@ -168,6 +168,27 @@ export function buildLayerPanel(catalog, handlers) {
     if (!layer) return;
     panel.appendChild(buildLayerItem(layer, catLabel[layer.category] || layer.category, handlers, panel));
   });
+
+  // Empty state: with no layers the panel is a blank box that gives no hint of what to
+  // do. Show a short prompt + an Add Data button (reuses the panel header's Add Data
+  // click wiring) so first-time users have an obvious next step.
+  if (!panel.querySelector('.layer-item')) {
+    const empty = document.createElement('div');
+    empty.className = 'layer-empty';
+    empty.innerHTML =
+      '<span class="layer-empty-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6 2 9 8 12 14 9 8 6Z"/><path d="M2 15 8 18 14 15"/><path d="M18.5 7V13M15.5 10H21.5"/></svg></span>'
+      + '<p class="layer-empty-text">No layers yet. Add a data indicator to see it on the map.</p>';
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'layer-empty-btn';
+    btn.textContent = 'Add Data';
+    btn.addEventListener('click', () => {
+      const trigger = document.getElementById('add-data-btn');
+      if (trigger) trigger.click();
+    });
+    empty.appendChild(btn);
+    panel.appendChild(empty);
+  }
 
   // Close any open selector popups whose layer no longer exists.
   document.querySelectorAll('.sel-popup').forEach(p => {

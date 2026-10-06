@@ -156,6 +156,43 @@ html, body {
 /* Export/Share are icon-only on desktop too (they keep title + aria-label for naming). */
 .tb-icononly .tb-label { display: none; }
 
+/* Action / menu buttons (Add Data, View, Map, New Map, Share, Export) show their text
+   label on wide desktop so the toolbar reads clearly; below 1100px they collapse to
+   icon-only to keep the row on one line (mobile is already icon-only + folded into the
+   hamburger via .tb-mobile-hide). */
+@media (max-width: 1100px) {
+  .tb-collapse-label .tb-label { display: none; }
+  .tb-seg .tb-label { display: none; }
+}
+
+/* View-switcher: Map / Compare / Profile as one segmented control. The active view is
+   filled (accent) so the current mode is obvious. */
+.tb-segmented {
+  display: inline-flex;
+  flex: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: #fff;
+}
+.tb-seg {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  padding: 6px 11px;
+  border: 0;
+  border-right: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.tb-seg:last-child { border-right: 0; }
+.tb-seg:hover { background: var(--accent-soft); }
+.tb-seg.tb-seg-on { background: var(--accent); color: var(--on-accent); }
+.tb-seg.tb-seg-on:hover { background: var(--accent-deep); }
+
 /* Address / place search box in the toolbar. */
 .tb-search {
   position: relative;
@@ -718,6 +755,33 @@ html, body {
 
 /* ---------- Layer list (flat, draggable) ---------- */
 .layer-panel { display: flex; flex-direction: column; gap: 4px; }
+
+/* Empty state shown when no layers are on the map. */
+.layer-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  padding: 18px 12px 14px;
+  color: #6b7683;
+}
+.layer-empty-ico { color: var(--accent); }
+.layer-empty-ico svg { width: 30px; height: 30px; display: block; }
+.layer-empty-text { margin: 0; font-size: 12px; line-height: 1.4; }
+.layer-empty-btn {
+  display: inline-flex;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: var(--on-accent);
+  border-radius: 6px;
+  cursor: pointer;
+}
+.layer-empty-btn:hover { background: var(--accent-deep); border-color: var(--accent-text); }
 
 .layer-item {
   padding: 6px 6px 8px;
