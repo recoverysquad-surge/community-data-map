@@ -4,14 +4,17 @@
 //
 // Catches the "harvested but no data landed" anti-pattern (the colon-vs-dash column-match bug
 // that left Public Safety / Housing cells marked done with 0 records written). For each
-// category it compares three independent signals:
+// category it compares four independent signals:
 //   doneCells  — cells the harvest state says are complete (per shard state .done)
-//   ndLabels   — DISTINCT indicator labels actually present in the harvest NDJSON
+//   ndRows     — rows actually written to the harvest NDJSON
+//   ndLabels   — DISTINCT indicator labels present in the harvest NDJSON
 //   liveInds   — indicators in the built data/savi_index.json
-// A category with many doneCells but few ndLabels means cells were ticked without capturing
-// data (re-run after fixing the column match + resetting those cells). A category with ndLabels
-// but far fewer liveInds means the build is dropping rows (level not in LEVEL_GEO, geo join
-// miss, etc.). Both are flagged as WARN. Read-only — safe to run anytime.
+// A healthy done cell is one grid capture writing MANY geo rows, so ndRows should dwarf
+// doneCells; `ndRows < doneCells` means cells were ticked without capturing data (WARN
+// ticked-without-data — re-run after fixing the column match + resetting those cells).
+// Separately, the build should emit ~every captured label; a big ndLabels->liveInds shortfall
+// means the build is dropping rows (level not in LEVEL_GEO, geo join miss, etc. — WARN
+// build-dropping). Any WARN sets exit code 1. Read-only — safe to run anytime.
 
 const fs = require('fs');
 const path = require('path');
