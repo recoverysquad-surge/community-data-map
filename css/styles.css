@@ -1936,7 +1936,8 @@ html, body {
   border-bottom: 2px solid var(--accent);
   flex-shrink: 0;
 }
-.cmp-title { font-size: 15px; font-weight: 700; }
+.cmp-title { font-size: 15px; font-weight: 700; cursor: move; }
+.cmp-overlay .cmp-spacer { cursor: move; }
 .cmp-level { display: flex; align-items: center; gap: 6px; font-size: 11px; }
 .cmp-mini {
   font-size: 12px;

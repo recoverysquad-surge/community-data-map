@@ -5,9 +5,9 @@
 // Download the current table as CSV, Excel (.xlsx, lazy SheetJS) or GeoJSON.
 
 import { loadDataset, getCategories, getIndicators, searchIndicators, getIndicator,
-  getLevels, availableDisplays, availableYears, getValueMap } from './dataset.js?v=101';
-import { withLoading } from './toolbar.js?v=101';
-import { renderTrend, renderScatter, renderSlope, renderRadar, renderDistribution } from './charts.js?v=101';
+  getLevels, availableDisplays, availableYears, getValueMap } from './dataset.js?v=102';
+import { withLoading } from './toolbar.js?v=102';
+import { renderTrend, renderScatter, renderSlope, renderRadar, renderDistribution } from './charts.js?v=102';
 
 // ---- module state (one live table at a time) ----
 const M = {
@@ -627,12 +627,27 @@ export async function openTableModal(deps) {
 
   heatCb.addEventListener('change', () => { M.heatmap = heatCb.checked; refresh(); });
 
+  // Drag-to-move: grab the header bar (but not its interactive controls) and offset
+  // the modal via transform, which composes cleanly with the flex centering + resize.
+  let dragX = 0, dragY = 0;
+  const applyDrag = () => { modal.style.transform = `translate(${dragX}px, ${dragY}px)`; };
+  bar.addEventListener('mousedown', (e) => {
+    if (e.button !== 0 || e.target.closest('button, select, input, label, .cmp-menu-wrap')) return;
+    e.preventDefault();
+    const sx = e.clientX, sy = e.clientY, ox = dragX, oy = dragY;
+    const move = (ev) => { dragX = ox + (ev.clientX - sx); dragY = oy + (ev.clientY - sy); applyDrag(); };
+    const up = () => { document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up); };
+    document.addEventListener('mousemove', move);
+    document.addEventListener('mouseup', up);
+  });
+
   // Minimize collapses the modal to its header bar and docks it bottom-right, letting
-  // the backdrop pass clicks through to the map. Restoring returns to the last size.
+  // the backdrop pass clicks through to the map. The button flips to a "+" to restore,
+  // which returns to the last size and position.
   const setMinimized = (on) => {
     overlay.classList.toggle('minimized', on);
     modal.classList.toggle('minimized', on);
-    minBtn.textContent = on ? '\u2197' : '\u2212';
+    minBtn.textContent = on ? '+' : '\u2212';
     minBtn.title = on ? 'Restore' : 'Minimize';
     minBtn.setAttribute('aria-label', minBtn.title);
     if (on) dlMenu.classList.remove('open');
