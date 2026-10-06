@@ -1,23 +1,23 @@
 // SAVI Single-Map Interface — app entry point.
 // Initializes MapLibre, loads the layer catalog, and wires up UI.
 
-import { addLayer, updateLayerVisibility, updateLayerOpacity, bindPopups, reAddAllLayers, applyLayerOrder, setLayerColor, setLayerPattern, setLayerPatternOpacity, setLayerRamp, reclassify, removeLayer, applyIndicatorSelection, RAMPS } from './layers.js?v=97';
-import { buildLayerPanel, buildLegend, buildBasemapSwitcher, openCatalogModal } from './ui.js?v=97';
-import { makeDraggable, makeCollapsible, makeResizable, resetPanelLayout } from './panels.js?v=97';
+import { addLayer, updateLayerVisibility, updateLayerOpacity, bindPopups, reAddAllLayers, applyLayerOrder, setLayerColor, setLayerPattern, setLayerPatternOpacity, setLayerRamp, reclassify, removeLayer, applyIndicatorSelection, RAMPS } from './layers.js?v=98';
+import { buildLayerPanel, buildLegend, buildBasemapSwitcher, openCatalogModal } from './ui.js?v=98';
+import { makeDraggable, makeCollapsible, makeResizable, resetPanelLayout } from './panels.js?v=98';
 import { buildToolbar, showToast, exportImage, exportPdf, exportData, exportLayer, setSaveDirty,
   listSavedMaps, getSavedMap, saveNamedMap, deleteSavedMap,
   getActiveMapId, setActiveMapId, clearActiveMapId, withLoading,
-  openSaveMapDialog, openSavedMapsDialog, downloadBlob, stamp } from './toolbar.js?v=97';
-import { ANY, loadDataset, getCategories, getIndicator, getLevels, availableYears, resolveSelection, getValueMap, geometryFor } from './dataset.js?v=97';
-import { openTableModal } from './table.js?v=97';
-import { openProfileModal } from './profile.js?v=97';
-import { openSwipe, closeSwipe, isSwipeOpen } from './swipe.js?v=97';
-import { openMetadataModal } from './metadata.js?v=97';
-import { openWelcomeCard } from './welcome.js?v=97';
-import { openHelpPanel } from './help.js?v=97';
-import { openFeaturedGallery } from './featured.js?v=97';
-import { openImportPlaces } from './import_places.js?v=97';
-import { openImportGeojson } from './import_geojson.js?v=97';
+  openSaveMapDialog, openSavedMapsDialog, downloadBlob, stamp } from './toolbar.js?v=98';
+import { ANY, loadDataset, getCategories, getIndicator, getLevels, availableYears, resolveSelection, getValueMap, geometryFor } from './dataset.js?v=98';
+import { openTableModal } from './table.js?v=98';
+import { openProfileModal } from './profile.js?v=98';
+import { openSwipe, closeSwipe, isSwipeOpen } from './swipe.js?v=98';
+import { openMetadataModal } from './metadata.js?v=98';
+import { openWelcomeCard } from './welcome.js?v=98';
+import { openHelpPanel } from './help.js?v=98';
+import { openFeaturedGallery } from './featured.js?v=98';
+import { openImportPlaces } from './import_places.js?v=98';
+import { openImportGeojson } from './import_geojson.js?v=98';
 
 // ---- Basemap definitions (all key-free) ----
 export const BASEMAPS = {
@@ -40,25 +40,32 @@ export const BASEMAPS = {
     label: 'Satellite',
     tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
     attribution: 'Tiles © Esri — World Imagery'
+  },
+  hybrid: {
+    label: 'Hybrid',
+    // Satellite imagery base + transparent Esri reference overlays (roads, then labels/places).
+    tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
+    overlays: [
+      ['https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}'],
+      ['https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}']
+    ],
+    attribution: 'Tiles © Esri — World Imagery, Reference'
   }
 };
 
 function basemapStyle(key) {
   const bm = BASEMAPS[key];
-  return {
-    version: 8,
-    sources: {
-      basemap: {
-        type: 'raster',
-        tiles: bm.tiles,
-        tileSize: 256,
-        attribution: bm.attribution
-      }
-    },
-    layers: [
-      { id: 'basemap', type: 'raster', source: 'basemap' }
-    ]
+  const sources = {
+    basemap: { type: 'raster', tiles: bm.tiles, tileSize: 256, attribution: bm.attribution }
   };
+  const layers = [{ id: 'basemap', type: 'raster', source: 'basemap' }];
+  // Optional transparent raster overlays stacked above the base (e.g. Hybrid labels/roads).
+  (bm.overlays || []).forEach((tiles, i) => {
+    const id = `basemap-ov${i}`;
+    sources[id] = { type: 'raster', tiles, tileSize: 256 };
+    layers.push({ id, type: 'raster', source: id });
+  });
+  return { version: 8, sources, layers };
 }
 
 // ---- App state ----

@@ -715,7 +715,8 @@ export function buildToolbar(handlers) {
   menuAction(view.menu, 'Welcome Card\u2026', handlers.onOpenWelcome);
   // Re-sync checkmarks each time the menu opens (panels can be closed elsewhere).
   view.menu._onOpen = () => viewToggles.forEach(t => t.render());
-  bar.appendChild(view.wrap);
+  // (View is appended after the Layers/Legend toggles below so the order reads
+  //  Data > Layers > Legend > View > Compare > Profile.)
 
   // Layers + Legend are vital, so promote them to obvious top-level toggle buttons
   // (they're also in the View menu). The pressed state reflects the panel's current
@@ -754,6 +755,7 @@ export function buildToolbar(handlers) {
   addBtn.classList.add('tb-right-start');
   if (layersToggleBtn) bar.appendChild(layersToggleBtn);
   if (legendToggleBtn) bar.appendChild(legendToggleBtn);
+  bar.appendChild(view.wrap);   // View menu sits after the Layers/Legend toggles
 
   // Compare: open the tabular data view.
   const tableBtn = document.createElement('button');
@@ -787,6 +789,8 @@ export function buildToolbar(handlers) {
   // Map menu: Save / Saved Maps / New (carries the unsaved-changes dot).
   const mapMenu = makeDropdown(icon('map') + label('Map'), 'tb-map-btn');
   mapMenu.wrap.classList.add('tb-mobile-hide');
+  mapMenu.btn.classList.add('tb-icononly');   // icon-only on desktop
+  mapMenu.btn.setAttribute('aria-label', 'Map');
   mapMenu.btn.title = 'Save, load, share, or feature maps';
   mapMenuBtn = mapMenu.btn;
   menuAction(mapMenu.menu, 'Featured Maps\u2026', handlers.onOpenFeatured);
@@ -808,8 +812,9 @@ export function buildToolbar(handlers) {
   // New Map: promoted to a visible toolbar button (was buried in the Map menu).
   const newMapBtn = document.createElement('button');
   newMapBtn.type = 'button';
-  newMapBtn.className = 'tb-btn tb-mobile-hide';
+  newMapBtn.className = 'tb-btn tb-icononly tb-mobile-hide';
   newMapBtn.innerHTML = icon('newmap') + label('New Map');
+  newMapBtn.setAttribute('aria-label', 'New Map');   // icon-only on desktop
   newMapBtn.title = 'Start a fresh map (clears the current one)';
   newMapBtn.addEventListener('click', () => handlers.onNewMap && handlers.onNewMap());
   bar.appendChild(newMapBtn);
