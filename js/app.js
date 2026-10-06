@@ -1,23 +1,23 @@
 // SAVI Single-Map Interface — app entry point.
 // Initializes MapLibre, loads the layer catalog, and wires up UI.
 
-import { addLayer, updateLayerVisibility, updateLayerOpacity, bindPopups, reAddAllLayers, applyLayerOrder, setLayerColor, setLayerPattern, setLayerPatternOpacity, setLayerRamp, reclassify, removeLayer, applyIndicatorSelection, RAMPS } from './layers.js?v=106';
-import { buildLayerPanel, buildLegend, buildBasemapSwitcher, openCatalogModal } from './ui.js?v=106';
-import { makeDraggable, makeCollapsible, makeResizable, resetPanelLayout } from './panels.js?v=106';
+import { addLayer, updateLayerVisibility, updateLayerOpacity, bindPopups, reAddAllLayers, applyLayerOrder, setLayerColor, setLayerPattern, setLayerPatternOpacity, setLayerRamp, reclassify, removeLayer, applyIndicatorSelection, RAMPS } from './layers.js?v=107';
+import { buildLayerPanel, buildLegend, buildBasemapSwitcher, openCatalogModal } from './ui.js?v=107';
+import { makeDraggable, makeCollapsible, makeResizable, resetPanelLayout } from './panels.js?v=107';
 import { buildToolbar, showToast, exportImage, exportPdf, exportData, exportLayer, setSaveDirty,
   listSavedMaps, getSavedMap, saveNamedMap, deleteSavedMap,
   getActiveMapId, setActiveMapId, clearActiveMapId, withLoading,
-  openSaveMapDialog, openSavedMapsDialog, downloadBlob, stamp } from './toolbar.js?v=106';
-import { ANY, loadDataset, getCategories, getIndicator, getLevels, availableYears, resolveSelection, getValueMap, geometryFor } from './dataset.js?v=106';
-import { openTableModal } from './table.js?v=106';
-import { openProfileModal } from './profile.js?v=106';
-import { openSwipe, closeSwipe, isSwipeOpen } from './swipe.js?v=106';
-import { openMetadataModal } from './metadata.js?v=106';
-import { openWelcomeCard } from './welcome.js?v=106';
-import { openHelpPanel } from './help.js?v=106';
-import { openFeaturedGallery } from './featured.js?v=106';
-import { openImportPlaces } from './import_places.js?v=106';
-import { openImportGeojson } from './import_geojson.js?v=106';
+  openSaveMapDialog, openSavedMapsDialog, downloadBlob, stamp } from './toolbar.js?v=107';
+import { ANY, loadDataset, getCategories, getIndicator, getLevels, availableYears, resolveSelection, getValueMap, geometryFor } from './dataset.js?v=107';
+import { openTableModal } from './table.js?v=107';
+import { openProfileModal } from './profile.js?v=107';
+import { openSwipe, closeSwipe, isSwipeOpen } from './swipe.js?v=107';
+import { openMetadataModal } from './metadata.js?v=107';
+import { openWelcomeCard } from './welcome.js?v=107';
+import { openHelpPanel } from './help.js?v=107';
+import { openFeaturedGallery } from './featured.js?v=107';
+import { openImportPlaces } from './import_places.js?v=107';
+import { openImportGeojson } from './import_geojson.js?v=107';
 
 // ---- Basemap definitions (all key-free) ----
 export const BASEMAPS = {

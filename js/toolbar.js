@@ -688,9 +688,9 @@ export function buildToolbar(handlers) {
   // hamburger. Uses the same layers-with-plus glyph as the Layers panel's add button.
   const addBtn = document.createElement('button');
   addBtn.type = 'button';
-  addBtn.className = 'tb-btn tb-primary tb-collapse-label';
+  addBtn.className = 'tb-btn tb-primary tb-icononly';
   addBtn.innerHTML = icon('adddata') + label('Add Data');
-  addBtn.setAttribute('aria-label', 'Add Data');   // label collapses to icon on narrow desktop
+  addBtn.setAttribute('aria-label', 'Add Data');   // icon-only (label hidden to keep the bar one line)
   addBtn.title = 'Add a data indicator to the map';
   addBtn.addEventListener('click', () => handlers.onAddData && handlers.onAddData());
   bar.appendChild(addBtn);
@@ -699,7 +699,7 @@ export function buildToolbar(handlers) {
   // reset actions, then the Welcome card.
   const view = makeDropdown(icon('view') + label('View'), '', 'left');
   view.wrap.classList.add('tb-mobile-hide');
-  view.btn.classList.add('tb-collapse-label');   // label collapses to icon on narrow desktop
+  view.btn.classList.add('tb-icononly');   // icon-only on desktop
   view.btn.setAttribute('aria-label', 'View');
   view.btn.title = 'Show or hide panels and controls';
   let lastGroup = null;
@@ -837,7 +837,7 @@ export function buildToolbar(handlers) {
   // Map menu: Save / Saved Maps / New (carries the unsaved-changes dot).
   const mapMenu = makeDropdown(icon('map') + label('Map'), 'tb-map-btn');
   mapMenu.wrap.classList.add('tb-mobile-hide');
-  mapMenu.btn.classList.add('tb-collapse-label');   // label collapses to icon on narrow desktop
+  mapMenu.btn.classList.add('tb-icononly');   // icon-only on desktop
   mapMenu.btn.setAttribute('aria-label', 'Map');
   mapMenu.btn.title = 'Save, load, share, or feature maps';
   mapMenuBtn = mapMenu.btn;
@@ -860,9 +860,9 @@ export function buildToolbar(handlers) {
   // New Map: promoted to a visible toolbar button (was buried in the Map menu).
   const newMapBtn = document.createElement('button');
   newMapBtn.type = 'button';
-  newMapBtn.className = 'tb-btn tb-collapse-label tb-mobile-hide';
+  newMapBtn.className = 'tb-btn tb-icononly tb-mobile-hide';
   newMapBtn.innerHTML = icon('newmap') + label('New Map');
-  newMapBtn.setAttribute('aria-label', 'New Map');   // label collapses to icon on narrow desktop
+  newMapBtn.setAttribute('aria-label', 'New Map');   // icon-only on desktop
   newMapBtn.title = 'Start a fresh map (clears the current one)';
   newMapBtn.addEventListener('click', () => handlers.onNewMap && handlers.onNewMap());
   bar.appendChild(newMapBtn);
@@ -871,9 +871,9 @@ export function buildToolbar(handlers) {
   // link elsewhere). Promoted from the Map menu's "Copy Shareable Link".
   const shareBtn = document.createElement('button');
   shareBtn.type = 'button';
-  shareBtn.className = 'tb-btn tb-collapse-label tb-mobile-hide';
+  shareBtn.className = 'tb-btn tb-icononly tb-mobile-hide';
   shareBtn.innerHTML = icon('share') + label('Share');
-  shareBtn.setAttribute('aria-label', 'Share');   // label collapses to icon on narrow desktop
+  shareBtn.setAttribute('aria-label', 'Share');   // icon-only on desktop
   shareBtn.title = 'Share the current map view';
   shareBtn.addEventListener('click', () => handlers.onShare && handlers.onShare());
   bar.appendChild(shareBtn);
@@ -881,8 +881,8 @@ export function buildToolbar(handlers) {
   // Export menu.
   const exp = makeDropdown(icon('export') + label('Export'));
   exp.wrap.classList.add('tb-mobile-hide');
-  exp.btn.classList.add('tb-collapse-label');
-  exp.btn.setAttribute('aria-label', 'Export');   // label collapses to icon on narrow desktop
+  exp.btn.classList.add('tb-icononly');
+  exp.btn.setAttribute('aria-label', 'Export');   // icon-only on desktop
   exp.btn.title = 'Export the map or data';
   menuAction(exp.menu, 'Image (PNG)', handlers.onExportImage);
   menuAction(exp.menu, 'PDF (print)', handlers.onExportPdf);
