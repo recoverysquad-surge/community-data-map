@@ -688,9 +688,9 @@ export function buildToolbar(handlers) {
   // hamburger. Uses the same layers-with-plus glyph as the Layers panel's add button.
   const addBtn = document.createElement('button');
   addBtn.type = 'button';
-  addBtn.className = 'tb-btn tb-primary';
+  addBtn.className = 'tb-btn tb-primary tb-icononly';
   addBtn.innerHTML = icon('adddata') + label('Data');
-  addBtn.setAttribute('aria-label', 'Add Data');   // label is icon-only on phones
+  addBtn.setAttribute('aria-label', 'Add Data');   // icon-only (label hidden)
   addBtn.title = 'Add a data indicator to the map';
   addBtn.addEventListener('click', () => handlers.onAddData && handlers.onAddData());
   bar.appendChild(addBtn);
