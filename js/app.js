@@ -1,23 +1,23 @@
 // SAVI Single-Map Interface — app entry point.
 // Initializes MapLibre, loads the layer catalog, and wires up UI.
 
-import { addLayer, updateLayerVisibility, updateLayerOpacity, bindPopups, reAddAllLayers, applyLayerOrder, setLayerColor, setLayerPattern, setLayerPatternOpacity, setLayerRamp, reclassify, removeLayer, applyIndicatorSelection, RAMPS } from './layers.js?v=110';
-import { buildLayerPanel, buildLegend, buildBasemapSwitcher, openCatalogModal } from './ui.js?v=110';
-import { makeDraggable, makeCollapsible, makeResizable, resetPanelLayout } from './panels.js?v=110';
+import { addLayer, updateLayerVisibility, updateLayerOpacity, bindPopups, reAddAllLayers, applyLayerOrder, setLayerColor, setLayerPattern, setLayerPatternOpacity, setLayerRamp, reclassify, removeLayer, applyIndicatorSelection, RAMPS } from './layers.js?v=111';
+import { buildLayerPanel, buildLegend, buildBasemapSwitcher, openCatalogModal } from './ui.js?v=111';
+import { makeDraggable, makeCollapsible, makeResizable, resetPanelLayout } from './panels.js?v=111';
 import { buildToolbar, showToast, exportImage, exportPdf, exportData, exportLayer, setSaveDirty,
   listSavedMaps, getSavedMap, saveNamedMap, deleteSavedMap,
   getActiveMapId, setActiveMapId, clearActiveMapId, withLoading,
-  openSaveMapDialog, openSavedMapsDialog, downloadBlob, stamp } from './toolbar.js?v=110';
-import { ANY, loadDataset, getCategories, getIndicator, getLevels, availableYears, resolveSelection, getValueMap, geometryFor, searchIndicators } from './dataset.js?v=110';
-import { openTableModal } from './table.js?v=110';
-import { openProfileModal } from './profile.js?v=110';
-import { openSwipe, closeSwipe, isSwipeOpen } from './swipe.js?v=110';
-import { openMetadataModal } from './metadata.js?v=110';
-import { openWelcomeCard } from './welcome.js?v=110';
-import { openHelpPanel } from './help.js?v=110';
-import { openFeaturedGallery } from './featured.js?v=110';
-import { openImportPlaces } from './import_places.js?v=110';
-import { openImportGeojson } from './import_geojson.js?v=110';
+  openSaveMapDialog, openSavedMapsDialog, downloadBlob, stamp } from './toolbar.js?v=111';
+import { ANY, loadDataset, getCategories, getIndicator, getLevels, availableYears, resolveSelection, getValueMap, geometryFor, searchIndicators } from './dataset.js?v=111';
+import { openTableModal } from './table.js?v=111';
+import { openProfileModal } from './profile.js?v=111';
+import { openSwipe, closeSwipe, isSwipeOpen } from './swipe.js?v=111';
+import { openMetadataModal } from './metadata.js?v=111';
+import { openWelcomeCard } from './welcome.js?v=111';
+import { openHelpPanel } from './help.js?v=111';
+import { openFeaturedGallery } from './featured.js?v=111';
+import { openImportPlaces } from './import_places.js?v=111';
+import { openImportGeojson } from './import_geojson.js?v=111';
 
 // ---- Basemap definitions (all key-free) ----
 export const BASEMAPS = {
@@ -291,7 +291,16 @@ async function init() {
   if (!permalink && !freshMap) {
     try { const raw = localStorage.getItem('savi.session'); if (raw) session = JSON.parse(raw); } catch { /* ignore */ }
   }
-  const saved = permalink || session;
+  // If the session snapshot is missing (e.g. first load after an update before any change
+  // persisted, or a storage-quota write failure), fall back to the active named map so a
+  // plain refresh still restores your map instead of dropping to defaults. Safe now that
+  // nothing autosaves over the named entry.
+  let fallback = null;
+  if (!permalink && !freshMap && !session && state.activeMapId) {
+    const entry = getSavedMap(state.activeMapId);
+    if (entry) fallback = entry.state;
+  }
+  const saved = permalink || session || fallback;
   if (saved) {
     // Recreate saved dynamic indicator layers before applying order/active/styles.
     for (const d of (saved.dynamic || [])) {

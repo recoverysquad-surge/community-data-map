@@ -5,10 +5,10 @@
 // Download the current table as CSV, Excel (.xlsx, lazy SheetJS) or GeoJSON.
 
 import { loadDataset, getCategories, getIndicators, searchIndicators, getIndicator,
-  getLevels, availableDisplays, availableYears, getValueMap } from './dataset.js?v=110';
-import { makeModalMovable } from './panels.js?v=110';
-import { withLoading } from './toolbar.js?v=110';
-import { renderTrend, renderScatter, renderSlope, renderRadar, renderDistribution } from './charts.js?v=110';
+  getLevels, availableDisplays, availableYears, getValueMap } from './dataset.js?v=111';
+import { makeModalMovable } from './panels.js?v=111';
+import { withLoading } from './toolbar.js?v=111';
+import { renderTrend, renderScatter, renderSlope, renderRadar, renderDistribution } from './charts.js?v=111';
 
 // ---- module state (one live table at a time) ----
 const M = {
