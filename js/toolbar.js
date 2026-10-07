@@ -513,6 +513,15 @@ function menuGroup(menu, labelText) {
 
 // The Map dropdown button — carries the unsaved-changes dot.
 let mapMenuBtn = null;
+let layerBadgeEl = null;
+
+// Set the count shown on the Layers toggle badge. 0 hides it.
+export function setLayerCount(n) {
+  if (!layerBadgeEl) return;
+  const show = Number(n) > 0;
+  layerBadgeEl.textContent = show ? String(n) : '';
+  layerBadgeEl.classList.toggle('tb-badge-on', show);
+}
 
 // Show/hide the "unsaved changes" dot on the Map menu button.
 export function setSaveDirty(dirty) {
@@ -548,9 +557,9 @@ function buildSearchBox(handlers) {
   const input = document.createElement('input');
   input.type = 'search';
   input.className = 'tb-search-input';
-  input.placeholder = 'Search address or place\u2026';
+  input.placeholder = 'Search data, place, or address\u2026';
   input.autocomplete = 'off';
-  input.setAttribute('aria-label', 'Search address or place');
+  input.setAttribute('aria-label', 'Search data indicators, places, or addresses');
 
   const locateBtn = document.createElement('button');
   locateBtn.type = 'button';
@@ -576,6 +585,32 @@ function buildSearchBox(handlers) {
     g.className = 'tb-search-group';
     g.textContent = text;
     return g;
+  };
+
+  // Render matching data indicators at the very top: the toolbar search now also finds
+  // data (not just places), so users have one place to look. Selecting one adds it to
+  // the map (via handlers.onAddIndicator). Already-added indicators are tagged so a
+  // repeat click reads as a no-op rather than a silent nothing.
+  const renderIndicatorMatches = (inds) => {
+    if (!inds || !inds.length) return;
+    results.appendChild(groupLabel('Data indicators'));
+    inds.slice(0, 6).forEach(ind => {
+      const row = document.createElement('button');
+      row.type = 'button';
+      row.className = 'tb-search-item tb-search-ind';
+      const added = handlers.isIndicatorAdded && handlers.isIndicatorAdded(ind.id);
+      row.innerHTML = `<span class="tb-search-tag tb-tag-data">Data</span>`
+        + `<span class="tb-search-ind-label">${escHtml(ind.label)}</span>`
+        + `<span class="tb-search-sub">${escHtml(ind.category || '')}${added ? ' \u2022 on map' : ''}</span>`;
+      row.title = ind.path || ind.label;
+      if (added) row.classList.add('added');
+      row.addEventListener('click', () => {
+        clearResults();
+        input.value = '';
+        handlers.onAddIndicator && handlers.onAddIndicator(ind.id);
+      });
+      results.appendChild(row);
+    });
   };
 
   // Render matching geographies (from the map's own data) at the top of the dropdown.
@@ -621,9 +656,12 @@ function buildSearchBox(handlers) {
   const run = () => {
     const q = input.value.trim();
     if (q.length < 2) { clearResults(); return; }
-    // Instant local geography matches first.
+    // Instant local matches first (data indicators, then geographies on the map);
+    // addresses are fetched async below.
+    const inds = (handlers.onSearchIndicators && handlers.onSearchIndicators(q)) || [];
     const geos = (handlers.onSearchGeos && handlers.onSearchGeos(q)) || [];
     results.innerHTML = '';
+    renderIndicatorMatches(inds);
     renderGeoMatches(geos);
     const loading = document.createElement('div');
     loading.className = 'tb-search-loading';
@@ -732,6 +770,13 @@ export function buildToolbar(handlers) {
     btn.className = 'tb-btn tb-toggle';
     btn.innerHTML = icon(iconName) + label(p.label);
     btn.setAttribute('aria-label', p.label);   // label is icon-only (hidden), so name it
+    // The Layers toggle carries a small count badge (set via setLayerCount) so users see
+    // how many layers are loaded even when the panel is closed.
+    if (key === 'layers') {
+      layerBadgeEl = document.createElement('span');
+      layerBadgeEl.className = 'tb-badge';
+      btn.appendChild(layerBadgeEl);
+    }
     const sync = () => {
       const on = !p.el.classList.contains('hidden');
       btn.classList.toggle('tb-toggle-on', on);

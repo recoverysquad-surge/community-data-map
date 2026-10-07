@@ -1,23 +1,23 @@
 // SAVI Single-Map Interface — app entry point.
 // Initializes MapLibre, loads the layer catalog, and wires up UI.
 
-import { addLayer, updateLayerVisibility, updateLayerOpacity, bindPopups, reAddAllLayers, applyLayerOrder, setLayerColor, setLayerPattern, setLayerPatternOpacity, setLayerRamp, reclassify, removeLayer, applyIndicatorSelection, RAMPS } from './layers.js?v=107';
-import { buildLayerPanel, buildLegend, buildBasemapSwitcher, openCatalogModal } from './ui.js?v=107';
-import { makeDraggable, makeCollapsible, makeResizable, resetPanelLayout } from './panels.js?v=107';
-import { buildToolbar, showToast, exportImage, exportPdf, exportData, exportLayer, setSaveDirty,
+import { addLayer, updateLayerVisibility, updateLayerOpacity, bindPopups, reAddAllLayers, applyLayerOrder, setLayerColor, setLayerPattern, setLayerPatternOpacity, setLayerRamp, reclassify, removeLayer, applyIndicatorSelection, RAMPS } from './layers.js?v=108';
+import { buildLayerPanel, buildLegend, buildBasemapSwitcher, openCatalogModal } from './ui.js?v=108';
+import { makeDraggable, makeCollapsible, makeResizable, resetPanelLayout } from './panels.js?v=108';
+import { buildToolbar, showToast, exportImage, exportPdf, exportData, exportLayer, setSaveDirty, setLayerCount,
   listSavedMaps, getSavedMap, saveNamedMap, deleteSavedMap,
   getActiveMapId, setActiveMapId, clearActiveMapId, withLoading,
-  openSaveMapDialog, openSavedMapsDialog, downloadBlob, stamp } from './toolbar.js?v=107';
-import { ANY, loadDataset, getCategories, getIndicator, getLevels, availableYears, resolveSelection, getValueMap, geometryFor } from './dataset.js?v=107';
-import { openTableModal } from './table.js?v=107';
-import { openProfileModal } from './profile.js?v=107';
-import { openSwipe, closeSwipe, isSwipeOpen } from './swipe.js?v=107';
-import { openMetadataModal } from './metadata.js?v=107';
-import { openWelcomeCard } from './welcome.js?v=107';
-import { openHelpPanel } from './help.js?v=107';
-import { openFeaturedGallery } from './featured.js?v=107';
-import { openImportPlaces } from './import_places.js?v=107';
-import { openImportGeojson } from './import_geojson.js?v=107';
+  openSaveMapDialog, openSavedMapsDialog, downloadBlob, stamp } from './toolbar.js?v=108';
+import { ANY, loadDataset, getCategories, getIndicator, getLevels, availableYears, resolveSelection, getValueMap, geometryFor, searchIndicators } from './dataset.js?v=108';
+import { openTableModal } from './table.js?v=108';
+import { openProfileModal } from './profile.js?v=108';
+import { openSwipe, closeSwipe, isSwipeOpen } from './swipe.js?v=108';
+import { openMetadataModal } from './metadata.js?v=108';
+import { openWelcomeCard } from './welcome.js?v=108';
+import { openHelpPanel } from './help.js?v=108';
+import { openFeaturedGallery } from './featured.js?v=108';
+import { openImportPlaces } from './import_places.js?v=108';
+import { openImportGeojson } from './import_geojson.js?v=108';
 
 // ---- Basemap definitions (all key-free) ----
 export const BASEMAPS = {
@@ -587,6 +587,12 @@ async function init() {
     },
     onFlyTo: (result) => flyToLocation(result),
     onSearchGeos: (q) => searchGeographies(q),
+    onSearchIndicators: (q) => searchIndicators(q),
+    onAddIndicator: (id) => {
+      if (isIndicatorAdded(id)) { showToast('That indicator is already on the map.'); return; }
+      addIndicatorLayer(id);
+    },
+    isIndicatorAdded: (id) => isIndicatorAdded(id),
     onPickGeo: (geo) => highlightGeography(geo),
     onLocate: () => { if (state.geolocate) try { state.geolocate.trigger(); } catch { /* not ready */ } },
     getAutosave: () => state.autosave,
@@ -673,6 +679,11 @@ async function init() {
   // "+" opens the indicator catalog modal.
   const addBtn = document.getElementById('add-data-btn');
   if (addBtn) addBtn.addEventListener('click', () => openAddData());
+
+  // "Zoom to data" fits the map to the extent of the layers currently on the map
+  // (Reset View only returns to the region's starting extent).
+  const fitBtn = document.getElementById('fit-btn');
+  if (fitBtn) fitBtn.addEventListener('click', () => fitToActiveData());
 
   // Single Clear button in the Layers panel header opens a modal that asks whether
   // to clear all layers or just the hidden ones.
@@ -1850,6 +1861,7 @@ function rebuildPanel() {
   layerHandlers.order = state.layerOrder;
   layerHandlers.activeLayerIds = state.activeLayerIds;
   buildLayerPanel(state.catalog, layerHandlers);
+  setLayerCount(state.layerOrder.filter(id => findLayer(id)).length);
 }
 
 // Distinct-styling for stacked data layers. Solid ramps come first (7 distinct
@@ -2454,6 +2466,25 @@ function refreshLegend() {
     activeHighlight: state.legendHighlight,
     onZoomToLayer: zoomToLayerExtent
   });
+}
+
+// "Zoom to data": fit the map to the combined extent of the layers currently on the
+// map. Unlike Reset View (which returns to the region's starting extent), this frames
+// exactly what the user has loaded — handy after panning away or when the data covers a
+// sub-region (a few ZIPs, school corporations, a point layer, etc.).
+function fitToActiveData() {
+  if (!state.map) return;
+  const active = orderedCfgs().filter(l => state.activeLayerIds.has(l.id));
+  if (!active.length) { showToast('No layers on the map yet — add data first.'); return; }
+  const bounds = new maplibregl.LngLatBounds();
+  let any = false;
+  active.forEach(cfg => {
+    const feats = (cfg.sourceData && cfg.sourceData.features) || [];
+    feats.forEach(f => { if (f.geometry) { extendBounds(bounds, f.geometry); any = true; } });
+  });
+  if (!any) { showToast('These layers have no mappable features to zoom to.'); return; }
+  try { state.map.fitBounds(bounds, { padding: 60, maxZoom: 14, duration: 900 }); }
+  catch { showToast('Could not compute the data extent.'); }
 }
 
 // Zoom/fit the map to the extent of a layer's features (used by the Places legend).

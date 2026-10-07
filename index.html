@@ -15,7 +15,7 @@
   <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
   <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 
-  <link href="css/styles.css?v=107" rel="stylesheet" />
+  <link href="css/styles.css?v=108" rel="stylesheet" />
 </head>
 <body>
   <div id="app">
@@ -42,6 +42,7 @@
     <section class="float-panel float-layers" id="panel-layers" role="region" aria-label="Layers">
       <header class="float-panel-header">
         <span class="float-panel-title">Layers</span>
+        <button id="fit-btn" class="fit-btn" type="button" title="Zoom the map to fit your data layers" aria-label="Zoom to data"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V5a1 1 0 0 1 1-1h4M20 9V5a1 1 0 0 0-1-1h-4M4 15v4a1 1 0 0 0 1 1h4M20 15v4a1 1 0 0 0-1 1h-4"/></svg></button>
         <button id="clear-btn" class="clear-btn" type="button" title="Remove layers from the map">Clear</button>
         <button id="add-data-btn" class="add-data-btn" type="button" title="Add a data layer to the map" aria-label="Add data layer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6 2 9 8 12 14 9 8 6Z"/><path d="M2 15 8 18 14 15"/><path d="M18.5 7V13M15.5 10H21.5"/></svg></button>
         <button class="collapse-btn" type="button" aria-label="Collapse panel">–</button>
@@ -109,6 +110,6 @@
     </footer>
   </div>
 
-  <script type="module" src="js/app.js?v=107"></script>
+  <script type="module" src="js/app.js?v=108"></script>
 </body>
 </html>
