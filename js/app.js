@@ -1,23 +1,23 @@
 // SAVI Single-Map Interface — app entry point.
 // Initializes MapLibre, loads the layer catalog, and wires up UI.
 
-import { addLayer, updateLayerVisibility, updateLayerOpacity, bindPopups, reAddAllLayers, applyLayerOrder, setLayerColor, setLayerPattern, setLayerPatternOpacity, setLayerRamp, reclassify, removeLayer, applyIndicatorSelection, RAMPS } from './layers.js?v=108';
-import { buildLayerPanel, buildLegend, buildBasemapSwitcher, openCatalogModal } from './ui.js?v=108';
-import { makeDraggable, makeCollapsible, makeResizable, resetPanelLayout } from './panels.js?v=108';
+import { addLayer, updateLayerVisibility, updateLayerOpacity, bindPopups, reAddAllLayers, applyLayerOrder, setLayerColor, setLayerPattern, setLayerPatternOpacity, setLayerRamp, reclassify, removeLayer, applyIndicatorSelection, RAMPS } from './layers.js?v=109';
+import { buildLayerPanel, buildLegend, buildBasemapSwitcher, openCatalogModal } from './ui.js?v=109';
+import { makeDraggable, makeCollapsible, makeResizable, resetPanelLayout } from './panels.js?v=109';
 import { buildToolbar, showToast, exportImage, exportPdf, exportData, exportLayer, setSaveDirty, setLayerCount,
   listSavedMaps, getSavedMap, saveNamedMap, deleteSavedMap,
   getActiveMapId, setActiveMapId, clearActiveMapId, withLoading,
-  openSaveMapDialog, openSavedMapsDialog, downloadBlob, stamp } from './toolbar.js?v=108';
-import { ANY, loadDataset, getCategories, getIndicator, getLevels, availableYears, resolveSelection, getValueMap, geometryFor, searchIndicators } from './dataset.js?v=108';
-import { openTableModal } from './table.js?v=108';
-import { openProfileModal } from './profile.js?v=108';
-import { openSwipe, closeSwipe, isSwipeOpen } from './swipe.js?v=108';
-import { openMetadataModal } from './metadata.js?v=108';
-import { openWelcomeCard } from './welcome.js?v=108';
-import { openHelpPanel } from './help.js?v=108';
-import { openFeaturedGallery } from './featured.js?v=108';
-import { openImportPlaces } from './import_places.js?v=108';
-import { openImportGeojson } from './import_geojson.js?v=108';
+  openSaveMapDialog, openSavedMapsDialog, downloadBlob, stamp } from './toolbar.js?v=109';
+import { ANY, loadDataset, getCategories, getIndicator, getLevels, availableYears, resolveSelection, getValueMap, geometryFor, searchIndicators } from './dataset.js?v=109';
+import { openTableModal } from './table.js?v=109';
+import { openProfileModal } from './profile.js?v=109';
+import { openSwipe, closeSwipe, isSwipeOpen } from './swipe.js?v=109';
+import { openMetadataModal } from './metadata.js?v=109';
+import { openWelcomeCard } from './welcome.js?v=109';
+import { openHelpPanel } from './help.js?v=109';
+import { openFeaturedGallery } from './featured.js?v=109';
+import { openImportPlaces } from './import_places.js?v=109';
+import { openImportGeojson } from './import_geojson.js?v=109';
 
 // ---- Basemap definitions (all key-free) ----
 export const BASEMAPS = {
@@ -277,7 +277,16 @@ async function init() {
   // refresh restores your last work — unless you explicitly chose "New Map".
   let freshMap = false;
   try { freshMap = sessionStorage.getItem('savi.newMap') === '1'; sessionStorage.removeItem('savi.newMap'); } catch { /* ignore */ }
-  const permalink = readPermalink();
+  const permalinkRaw = readPermalink();
+  // A #m= hash we stamped locally (Share / Copy Link) must NOT override newer autosaved
+  // work on a plain browser refresh — only a shared link opened fresh should win. Detect
+  // our own stamp via the sessionStorage marker, demote it, and strip it from the URL.
+  let localShare = false;
+  try { localShare = !!permalinkRaw && sessionStorage.getItem('savi.localShareHash') === location.hash; } catch { /* ignore */ }
+  if (localShare) {
+    try { sessionStorage.removeItem('savi.localShareHash'); history.replaceState(null, '', location.pathname + location.search); } catch { /* ignore */ }
+  }
+  const permalink = localShare ? null : permalinkRaw;
   let activeId = permalink ? null : getActiveMapId();
   if (!permalink && !activeId && !freshMap) {
     const recent = listSavedMaps()[0];   // listSavedMaps() is most-recent-first
@@ -2216,6 +2225,14 @@ function buildPermalink() {
   const json = JSON.stringify(captureMapState());
   return location.origin + location.pathname + '#m=' + b64urlEncode(json);
 }
+// Remember that WE just stamped the current #m= hash into the address bar (Share /
+// Copy Link). On a same-tab refresh this lets init() prefer the newer autosaved map
+// over this frozen snapshot — otherwise a plain refresh would "reset" the map to the
+// moment you shared it, discarding later autosaved edits. A genuinely shared link
+// opened in a fresh tab has no such marker, so it still restores the shared view.
+function markLocalShareHash() {
+  try { sessionStorage.setItem('savi.localShareHash', location.hash); } catch { /* ignore */ }
+}
 // Parse a permalink map state from the current URL hash, or null if absent/invalid.
 function readPermalink() {
   const h = location.hash.replace(/^#/, '');
@@ -2227,6 +2244,7 @@ function readPermalink() {
 async function copyPermalink() {
   const url = buildPermalink();
   history.replaceState(null, '', url); // reflect it in the address bar
+  markLocalShareHash();                // don't let this stale snapshot win on refresh
   try {
     await navigator.clipboard.writeText(url);
     showToast('Shareable link copied to clipboard.');
@@ -2240,6 +2258,7 @@ async function copyPermalink() {
 async function shareCurrentView() {
   const url = buildPermalink();
   history.replaceState(null, '', url); // reflect it in the address bar either way
+  markLocalShareHash();                // don't let this stale snapshot win on refresh
   const shareData = {
     title: 'Community Data Map',
     text: 'Check out this Community Data Map view',
