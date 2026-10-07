@@ -1,23 +1,23 @@
 // SAVI Single-Map Interface — app entry point.
 // Initializes MapLibre, loads the layer catalog, and wires up UI.
 
-import { addLayer, updateLayerVisibility, updateLayerOpacity, bindPopups, reAddAllLayers, applyLayerOrder, setLayerColor, setLayerPattern, setLayerPatternOpacity, setLayerRamp, reclassify, removeLayer, applyIndicatorSelection, RAMPS } from './layers.js?v=111';
-import { buildLayerPanel, buildLegend, buildBasemapSwitcher, openCatalogModal } from './ui.js?v=111';
-import { makeDraggable, makeCollapsible, makeResizable, resetPanelLayout } from './panels.js?v=111';
+import { addLayer, updateLayerVisibility, updateLayerOpacity, bindPopups, reAddAllLayers, applyLayerOrder, setLayerColor, setLayerPattern, setLayerPatternOpacity, setLayerRamp, reclassify, removeLayer, applyIndicatorSelection, RAMPS } from './layers.js?v=112';
+import { buildLayerPanel, buildLegend, buildBasemapSwitcher, openCatalogModal } from './ui.js?v=112';
+import { makeDraggable, makeCollapsible, makeResizable, resetPanelLayout } from './panels.js?v=112';
 import { buildToolbar, showToast, exportImage, exportPdf, exportData, exportLayer, setSaveDirty,
   listSavedMaps, getSavedMap, saveNamedMap, deleteSavedMap,
   getActiveMapId, setActiveMapId, clearActiveMapId, withLoading,
-  openSaveMapDialog, openSavedMapsDialog, downloadBlob, stamp } from './toolbar.js?v=111';
-import { ANY, loadDataset, getCategories, getIndicator, getLevels, availableYears, resolveSelection, getValueMap, geometryFor, searchIndicators } from './dataset.js?v=111';
-import { openTableModal } from './table.js?v=111';
-import { openProfileModal } from './profile.js?v=111';
-import { openSwipe, closeSwipe, isSwipeOpen } from './swipe.js?v=111';
-import { openMetadataModal } from './metadata.js?v=111';
-import { openWelcomeCard } from './welcome.js?v=111';
-import { openHelpPanel } from './help.js?v=111';
-import { openFeaturedGallery } from './featured.js?v=111';
-import { openImportPlaces } from './import_places.js?v=111';
-import { openImportGeojson } from './import_geojson.js?v=111';
+  openSaveMapDialog, openSavedMapsDialog, downloadBlob, stamp } from './toolbar.js?v=112';
+import { ANY, loadDataset, getCategories, getIndicator, getLevels, availableYears, resolveSelection, getValueMap, geometryFor, searchIndicators } from './dataset.js?v=112';
+import { openTableModal } from './table.js?v=112';
+import { openProfileModal } from './profile.js?v=112';
+import { openSwipe, closeSwipe, isSwipeOpen } from './swipe.js?v=112';
+import { openMetadataModal } from './metadata.js?v=112';
+import { openWelcomeCard } from './welcome.js?v=112';
+import { openHelpPanel } from './help.js?v=112';
+import { openFeaturedGallery } from './featured.js?v=112';
+import { openImportPlaces } from './import_places.js?v=112';
+import { openImportGeojson } from './import_geojson.js?v=112';
 
 // ---- Basemap definitions (all key-free) ----
 export const BASEMAPS = {
@@ -82,7 +82,6 @@ const state = {
   placesSeq: 0,     // counter for unique Places (pin) layer ids
   importedSeq: 0,   // counter for unique imported (GeoJSON/KML) layer ids
   activeMapId: null, // id of the currently-loaded saved map (from the saved-maps list)
-  sessionTimer: null, // debounce handle for the "last session" snapshot (savi.session)
   geolocate: null,  // MapLibre GeolocateControl (live "my location" dot)
   navCtrl: null,    // MapLibre NavigationControl (zoom + compass)
   fsCtrl: null,     // MapLibre FullscreenControl
@@ -266,12 +265,16 @@ async function init() {
   catalog.layers.forEach(l => { if (l.visible) state.activeLayerIds.add(l.id); });
   state.layerOrder = catalog.layers.map(l => l.id);
 
-  // A shareable permalink (#m=...) takes precedence; otherwise restore the last working
-  // session snapshot (savi.session) so a plain refresh brings you back to where you left
-  // off. The session snapshot is NOT a named saved map — it never touches the Saved Maps
-  // list — so opening a saved map can't corrupt it.
+  // Restore precedence: (1) an explicit "Open Saved Map" request — load that named entry
+  // DIRECTLY so it can't be masked by a stale/failed session snapshot; (2) a shareable
+  // permalink (#m=) opened fresh; (3) the last working session snapshot (savi.session),
+  // falling back to the active named map if the snapshot is missing; (4) defaults.
   let freshMap = false;
   try { freshMap = sessionStorage.getItem('savi.newMap') === '1'; sessionStorage.removeItem('savi.newMap'); } catch { /* ignore */ }
+  // One-shot id written by "Open" in the Saved Maps dialog. Authoritative for this load.
+  let openMapId = null;
+  try { openMapId = sessionStorage.getItem('savi.openMapId'); sessionStorage.removeItem('savi.openMapId'); } catch { /* ignore */ }
+  const openEntry = openMapId ? getSavedMap(openMapId) : null;
   const permalinkRaw = readPermalink();
   // A #m= hash we stamped locally (Share / Copy Link) must NOT override the newer session
   // snapshot on a plain browser refresh — only a shared link opened fresh should win. Detect
@@ -281,14 +284,15 @@ async function init() {
   if (localShare) {
     try { sessionStorage.removeItem('savi.localShareHash'); history.replaceState(null, '', location.pathname + location.search); } catch { /* ignore */ }
   }
-  const permalink = localShare ? null : permalinkRaw;
+  // An explicit Open also trumps any leftover permalink hash.
+  const permalink = (localShare || openEntry) ? null : permalinkRaw;
   // New Map starts clean: drop any session snapshot so the reload shows defaults.
   if (freshMap) { try { localStorage.removeItem('savi.session'); } catch { /* ignore */ } }
   // Keep the active-named-map id so the Save dialog still knows which named map you're
   // editing (Update vs Save-as-new); it is no longer an autosave target.
-  state.activeMapId = permalink ? null : getActiveMapId();
+  state.activeMapId = openEntry ? openMapId : (permalink ? null : getActiveMapId());
   let session = null;
-  if (!permalink && !freshMap) {
+  if (!openEntry && !permalink && !freshMap) {
     try { const raw = localStorage.getItem('savi.session'); if (raw) session = JSON.parse(raw); } catch { /* ignore */ }
   }
   // If the session snapshot is missing (e.g. first load after an update before any change
@@ -296,11 +300,11 @@ async function init() {
   // plain refresh still restores your map instead of dropping to defaults. Safe now that
   // nothing autosaves over the named entry.
   let fallback = null;
-  if (!permalink && !freshMap && !session && state.activeMapId) {
+  if (!openEntry && !permalink && !freshMap && !session && state.activeMapId) {
     const entry = getSavedMap(state.activeMapId);
     if (entry) fallback = entry.state;
   }
-  const saved = permalink || session || fallback;
+  const saved = (openEntry ? openEntry.state : null) || permalink || session || fallback;
   if (saved) {
     // Recreate saved dynamic indicator layers before applying order/active/styles.
     for (const d of (saved.dynamic || [])) {
@@ -537,12 +541,16 @@ async function init() {
         getMaps: () => listSavedMaps(),
         activeId: state.activeMapId,
         onOpen: (id) => {
-          // Seed the session snapshot with the chosen map so the reload's session-restore
-          // shows exactly it. activeMapId marks it as the one being edited; because there's
-          // no autosave, opening it can no longer clobber the named entry.
+          // Load the chosen named map authoritatively on reload: a one-shot sessionStorage
+          // id (tiny — immune to quota failures) that init() reads BEFORE savi.session, so a
+          // stale or unwritable session snapshot can't mask it. Seed savi.session too (best
+          // effort) so later refreshes stay on this map; strip any leftover #m= hash so a
+          // permalink can't take precedence. No autosave means opening never clobbers it.
           setActiveMapId(id);
           const entry = getSavedMap(id);
+          try { sessionStorage.setItem('savi.openMapId', id); } catch { /* ignore */ }
           try { if (entry) localStorage.setItem('savi.session', JSON.stringify(entry.state)); } catch { /* ignore */ }
+          try { history.replaceState(null, '', location.pathname + location.search); } catch { /* ignore */ }
           location.reload();
         },
         onDelete: (id) => {
@@ -552,9 +560,8 @@ async function init() {
       });
     },
     onNewMap: () => {
-      // Clear the session snapshot (and cancel any pending write) so the reload starts
-      // from defaults instead of restoring the current layers.
-      if (state.sessionTimer) { clearTimeout(state.sessionTimer); state.sessionTimer = null; }
+      // Clear the session snapshot so the reload starts from defaults instead of
+      // restoring the current layers.
       try { localStorage.removeItem('savi.session'); } catch { /* ignore */ }
       clearActiveMapId();
       state.activeMapId = null;
@@ -2622,42 +2629,38 @@ function clearLegendHighlight() {
 }
 
 // Flag the map as having unsaved changes (shows the dot on the Map menu button) and
-// record the current working state into the "last session" snapshot (debounced).
+// IMMEDIATELY persist the full current state to the "last session" snapshot so a
+// refresh always restores exactly what's on the map — no debounce, no reliance on a
+// pagehide flush that some browsers drop.
 function markDirty() {
   setSaveDirty(true);
-  scheduleSession();
-}
-
-// Like markDirty but snapshots the session NOW (no debounce). Use for discrete,
-// important state changes — e.g. showing/hiding a panel — so a quick refresh can't
-// drop them even where the pagehide/visibilitychange flush is unreliable.
-function markDirtyNow() {
-  setSaveDirty(true);
-  if (state.sessionTimer) { clearTimeout(state.sessionTimer); state.sessionTimer = null; }
   saveSession();
 }
 
-// Persist the current working map into the session snapshot (savi.session). This is a
-// lightweight "remember where I was" store; it is NOT a named saved map and never
-// touches the Saved Maps list, so it cannot corrupt a saved map.
+// Back-compat alias: a few call sites used markDirtyNow for discrete changes. Writes
+// are already immediate, so it's identical to markDirty.
+function markDirtyNow() { markDirty(); }
+
+// Persist the ENTIRE current working map into the session snapshot (savi.session). This
+// is the automatic "remember where I was" store; it is NOT a named saved map and never
+// touches the Saved Maps list, so it cannot corrupt a saved map. If the browser rejects
+// the write (e.g. localStorage quota exceeded), warn once so the loss isn't silent.
+let sessionWriteWarned = false;
 function saveSession() {
-  try { localStorage.setItem('savi.session', JSON.stringify(captureMapState())); } catch { /* ignore */ }
+  if (!state.map) return;   // nothing to capture until the map exists
+  try {
+    localStorage.setItem('savi.session', JSON.stringify(captureMapState()));
+    sessionWriteWarned = false;
+  } catch {
+    if (!sessionWriteWarned) {
+      sessionWriteWarned = true;
+      showToast('Couldn\u2019t auto-save locally (storage full) \u2014 delete some Saved Maps to free space.');
+    }
+  }
 }
 
-function scheduleSession() {
-  if (state.sessionTimer) clearTimeout(state.sessionTimer);
-  state.sessionTimer = setTimeout(() => { state.sessionTimer = null; saveSession(); }, 1500);
-}
-
-// Persist a pending session snapshot immediately. The debounce means a quick refresh
-// (or tab close) within ~1.5s of a change would otherwise drop it. Flush on page hide
-// so the last change survives.
-function flushSession() {
-  if (!state.sessionTimer) return;
-  clearTimeout(state.sessionTimer);
-  state.sessionTimer = null;
-  saveSession();
-}
+// Belt-and-suspenders: also save on page hide in case a last change raced the unload.
+function flushSession() { saveSession(); }
 window.addEventListener('pagehide', flushSession);
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden') flushSession();
