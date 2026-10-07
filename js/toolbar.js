@@ -141,25 +141,50 @@ export function openSavedMapsDialog({ getMaps, activeId, onOpen, onDelete }) {
         <span>Saved Maps</span>
         <button class="savemap-close" type="button" aria-label="Close">\u00d7</button>
       </div>
+      <div class="savemap-bulkbar">
+        <label class="savemap-selall"><input type="checkbox" class="savemap-selall-cb"> Select all</label>
+        <button class="savemap-btn savemap-danger savemap-delsel" type="button" disabled>Delete selected</button>
+      </div>
       <div class="savemap-list"></div>
     </div>`;
   document.body.appendChild(overlay);
 
   const listEl = overlay.querySelector('.savemap-list');
+  const bulkBar = overlay.querySelector('.savemap-bulkbar');
+  const selAllCb = overlay.querySelector('.savemap-selall-cb');
+  const delSelBtn = overlay.querySelector('.savemap-delsel');
   const close = () => overlay.remove();
   const fmt = iso => { try { return new Date(iso).toLocaleString(); } catch { return ''; } };
 
+  // Ids currently checked for a bulk action. Pruned to existing maps on each render.
+  const selected = new Set();
+
+  // Keep the Select-all checkbox + Delete-selected button in sync with the selection.
+  const syncBulk = (count) => {
+    const n = selected.size;
+    delSelBtn.disabled = n === 0;
+    delSelBtn.textContent = n ? `Delete selected (${n})` : 'Delete selected';
+    selAllCb.checked = count > 0 && n === count;
+    selAllCb.indeterminate = n > 0 && n < count;
+  };
+
   const render = () => {
     const maps = getMaps();
+    // Drop selections for maps that no longer exist.
+    const ids = new Set(maps.map(m => m.id));
+    [...selected].forEach(id => { if (!ids.has(id)) selected.delete(id); });
     if (!maps.length) {
+      bulkBar.style.display = 'none';
       listEl.innerHTML = '<div class="savemap-empty">No saved maps yet. Use \u201cSave Map\u2026\u201d to store the current view on this device.</div>';
       return;
     }
+    bulkBar.style.display = '';
     listEl.innerHTML = '';
     maps.forEach(m => {
       const row = document.createElement('div');
       row.className = 'savemap-row' + (m.id === activeId ? ' active' : '');
       row.innerHTML = `
+        <label class="savemap-row-check"><input type="checkbox" class="savemap-row-cb" ${selected.has(m.id) ? 'checked' : ''} aria-label="Select ${escHtml(m.name)}"></label>
         <div class="savemap-row-main">
           <div class="savemap-row-name">${escHtml(m.name)}${m.id === activeId ? ' <span class="savemap-badge">current</span>' : ''}</div>
           ${m.description ? `<div class="savemap-row-desc">${escHtml(m.description)}</div>` : ''}
@@ -170,10 +195,28 @@ export function openSavedMapsDialog({ getMaps, activeId, onOpen, onDelete }) {
           <button class="savemap-iconbtn" data-act="del" type="button" title="Delete" aria-label="Delete">\u00d7</button>
         </div>`;
       row.querySelector('[data-act="open"]').addEventListener('click', () => { close(); onOpen(m.id); });
-      row.querySelector('[data-act="del"]').addEventListener('click', () => { onDelete(m.id); render(); });
+      row.querySelector('[data-act="del"]').addEventListener('click', () => { onDelete(m.id); selected.delete(m.id); render(); });
+      row.querySelector('.savemap-row-cb').addEventListener('change', (e) => {
+        if (e.target.checked) selected.add(m.id); else selected.delete(m.id);
+        syncBulk(maps.length);
+      });
       listEl.appendChild(row);
     });
+    syncBulk(maps.length);
   };
+
+  selAllCb.addEventListener('change', () => {
+    const maps = getMaps();
+    if (selAllCb.checked) maps.forEach(m => selected.add(m.id));
+    else selected.clear();
+    render();
+  });
+  delSelBtn.addEventListener('click', () => {
+    if (!selected.size) return;
+    [...selected].forEach(id => onDelete(id));
+    selected.clear();
+    render();
+  });
   render();
 
   overlay.querySelector('.savemap-close').addEventListener('click', close);
@@ -513,15 +556,6 @@ function menuGroup(menu, labelText) {
 
 // The Map dropdown button — carries the unsaved-changes dot.
 let mapMenuBtn = null;
-let layerBadgeEl = null;
-
-// Set the count shown on the Layers toggle badge. 0 hides it.
-export function setLayerCount(n) {
-  if (!layerBadgeEl) return;
-  const show = Number(n) > 0;
-  layerBadgeEl.textContent = show ? String(n) : '';
-  layerBadgeEl.classList.toggle('tb-badge-on', show);
-}
 
 // Show/hide the "unsaved changes" dot on the Map menu button.
 export function setSaveDirty(dirty) {
@@ -770,13 +804,6 @@ export function buildToolbar(handlers) {
     btn.className = 'tb-btn tb-toggle';
     btn.innerHTML = icon(iconName) + label(p.label);
     btn.setAttribute('aria-label', p.label);   // label is icon-only (hidden), so name it
-    // The Layers toggle carries a small count badge (set via setLayerCount) so users see
-    // how many layers are loaded even when the panel is closed.
-    if (key === 'layers') {
-      layerBadgeEl = document.createElement('span');
-      layerBadgeEl.className = 'tb-badge';
-      btn.appendChild(layerBadgeEl);
-    }
     const sync = () => {
       const on = !p.el.classList.contains('hidden');
       btn.classList.toggle('tb-toggle-on', on);
@@ -894,11 +921,6 @@ export function buildToolbar(handlers) {
   menuAction(mapMenu.menu, 'Save Map\u2026', handlers.onSave);
   menuAction(mapMenu.menu, 'Saved Maps\u2026', handlers.onOpenSavedMaps);
   menuAction(mapMenu.menu, 'Copy Shareable Link', handlers.onCopyLink);
-  menuSep(mapMenu.menu);
-  const autosaveToggle = menuToggle(mapMenu.menu, 'Autosave',
-    handlers.getAutosave || (() => false),
-    handlers.onToggleAutosave || (() => {}));
-  mapMenu.menu._onOpen = () => autosaveToggle.render();   // reflect current state on open
   bar.appendChild(mapMenu.wrap);
   setSaveDirty(false);
 
@@ -977,10 +999,6 @@ export function buildToolbar(handlers) {
   menuAction(mapSub, 'New Map', handlers.onNewMap);
   menuAction(mapSub, 'Share\u2026', handlers.onShare);
   menuAction(mapSub, 'Copy Shareable Link', handlers.onCopyLink);
-  menuSep(mapSub);
-  const burgerAutosave = menuToggle(mapSub, 'Autosave',
-    handlers.getAutosave || (() => false),
-    handlers.onToggleAutosave || (() => {}));
 
   // Export category (mirrors the Export menu).
   const expSub = menuGroup(burger.menu, 'Export');
@@ -993,7 +1011,6 @@ export function buildToolbar(handlers) {
   // reopens compact.
   burger.menu._onOpen = () => {
     burgerToggles.forEach(t => t.render());
-    burgerAutosave.render();
     burger.menu.querySelectorAll('.tb-submenu.open').forEach(s => s.classList.remove('open'));
     burger.menu.querySelectorAll('.tb-menu-group.open').forEach(h => {
       h.classList.remove('open');

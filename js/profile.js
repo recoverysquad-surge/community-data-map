@@ -3,8 +3,8 @@
 // classic site's CommunityProfiles.aspx fact sheet, but built from the harvested shards.
 
 import { loadDataset, getCategories, getIndicators, getLevels, getIndicator,
-  availableDisplays, resolveSelection, getValueMap } from './dataset.js?v=109';
-import { makeModalMovable } from './panels.js?v=109';
+  availableDisplays, resolveSelection, getValueMap } from './dataset.js?v=110';
+import { makeModalMovable } from './panels.js?v=110';
 
 // ---- module state (one live profile at a time) ----
 const P = {

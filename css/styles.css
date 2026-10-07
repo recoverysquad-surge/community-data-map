@@ -156,28 +156,23 @@ html, body {
 /* Export/Share are icon-only on desktop too (they keep title + aria-label for naming). */
 .tb-icononly .tb-label { display: none; }
 
-/* Layer-count badge on the Layers toggle: shows how many layers are loaded even when the
-   panel is closed. Dark pill reads on both the off (white) and on (accent) button states. */
-.tb-btn.tb-toggle { position: relative; }
-.tb-badge {
-  display: none;
-  position: absolute;
-  top: -5px;
-  right: -5px;
-  min-width: 15px;
-  height: 15px;
-  padding: 0 3px;
+/* Layer-count badge in the Layers panel header, beside the title. Small dark pill;
+   hidden when empty (zero layers). */
+.layer-count-badge {
+  display: inline-block;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
   box-sizing: border-box;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
-  line-height: 13px;
+  line-height: 16px;
   text-align: center;
   color: #fff;
   background: var(--ink);
-  border: 1px solid #fff;
   border-radius: 8px;
 }
-.tb-badge.tb-badge-on { display: block; }
+.layer-count-badge:empty { display: none; }
 
 /* The Map/Compare/Profile view-switcher keeps its text labels on desktop (so the three
    views read clearly); below 1100px the labels collapse to icons to keep the toolbar on
@@ -1951,6 +1946,30 @@ html, body {
 .savemap-primary:hover { background: var(--accent-deep); border-color: var(--accent-text); }
 .savemap-secondary { margin-right: auto; }
 .savemap-btn[disabled] { opacity: 0.45; cursor: not-allowed; }
+.savemap-danger { border-color: #c0392b; color: #c0392b; background: #fff; }
+.savemap-danger:hover { background: #fcebea; }
+
+/* Saved-maps bulk-action bar: Select all + Delete selected. */
+.savemap-bulkbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 16px;
+  border-bottom: 1px solid #f0f3f7;
+}
+.savemap-selall {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+}
+.savemap-row-check { display: flex; align-items: center; padding-top: 1px; flex-shrink: 0; }
+.savemap-row-check input,
+.savemap-selall input { cursor: pointer; }
 
 /* Clear-layers choice modal: two equal-width action buttons (all / hidden). */
 .clear-modal .clear-msg { margin: 0; font-size: 13px; color: var(--muted); }
